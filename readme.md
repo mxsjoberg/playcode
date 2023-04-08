@@ -4,31 +4,33 @@ This is a work-in-progress.
 
 ## grammar
 
-    program -> statement_list
+    program                 ::= statement_list
 
-    statement_list -> statement | statement statement_list
+    statement_list          ::= statement | statement statement_list
 
-    statement -> if_statement | while_statement | assignment_statement | print_statement
+    statement               ::= if_statement | while_statement | assignment_statement | print_statement
 
-    if_statement -> IF expression NEWLINE statement_list [ ELSE statement_list ] END
+    if_statement            ::= IF expression NEWLINE statement_list [ ELSE statement_list ] END
 
-    while_statement -> WHILE expression NEWLINE statement_list END
+    while_statement         ::= WHILE expression NEWLINE statement_list END
 
-    assignment_statement -> IDENTIFIER INCREMENT | IDENTIFIER DECREMENT | IDENTIFIER ASSIGN expression
+    assignment_statement    ::= IDENTIFIER INCREMENT | IDENTIFIER DECREMENT | IDENTIFIER ASSIGN expression
 
-    print_statement -> PRINT expression
+    print_statement         ::= PRINT expression
 
-    expression -> comparison
+    expression              ::= comparison
 
-    comparison -> addition ( ( == | != | <= | >= | < | > ) addition )*
+    comparison              ::= addition ( ( == | != | <= | >= | < | > ) addition )*
 
-    addition -> multiplication ( ( + | - ) multiplication )*
+    addition                ::= multiplication ( ( + | - ) multiplication )*
 
-    multiplication -> unary ( ( * | / ) unary )*
+    multiplication          ::= unary ( ( * | / ) unary )*
 
-    unary -> ( - | ! ) unary | primary
+    unary                   ::= ( - | ! ) unary | primary
 
-    primary -> NUMBER | STRING | TRUE | FALSE | expression | IDENTIFIER
+    primary                 ::= NUMBER | STRING | TRUE | FALSE | expression | IDENTIFIER
+
+## tokens
 
     IF          -> "if"
     ELSE        -> "else"
@@ -42,18 +44,19 @@ This is a work-in-progress.
     ASSIGN      -> "="
     NEWLINE     -> "\n"
 
-### example program
+### example valid program
 
-x = 42
-y = 5
-# comment
-if x < 0
-    print false
-else
-    print "positive"
-end
-# comment
-while y > 0
-    print y--
-end
+    x = 42
+    # comment
+    if x < 0
+        print false
+    else
+        # another comment
+        print "positive"
+    end
+    # comment
+    y = 5
+    while y > 0
+        print y--
+    end
 
