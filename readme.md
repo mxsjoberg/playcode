@@ -37,6 +37,7 @@
     END         -> "end"
     SWAP        -> "swap"
     TAG         -> "@"
+    GOTO        -> "goto"
     PRINT       -> "print"
     TRUE        -> "true"
     FALSE       -> "false"
