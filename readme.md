@@ -1,7 +1,5 @@
 # playcode: a playful programming language
 
-This is a work-in-progress.
-
 ## grammar
 
     program                 ::= statement_list
