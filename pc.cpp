@@ -27,7 +27,6 @@ print 42
 #include <string>
 #include <vector>
 #include <regex>
-#include <map>
 
 // #define log(str);
 #define log(str) std::cout << str << std::endl;
