@@ -4,36 +4,35 @@
 
     program                 ::= statement_list
 
-    statement_list          ::= statement | statement statement_list
+    statement_list          ::= [TAG] statement | [TAG] statement statement_list
 
-    statement               ::= if_statement | while_statement | assignment_statement | print_statement
+    statement               ::= if_statement | assignment_statement | print_statement | swap_statement
 
     if_statement            ::= IF expression NEWLINE statement_list [ ELSE statement_list ] END
 
-    while_statement         ::= WHILE expression NEWLINE statement_list END
-
-    assignment_statement    ::= IDENTIFIER INCREMENT | IDENTIFIER DECREMENT | IDENTIFIER ASSIGN expression
+    assignment_statement    ::= ID INCREMENT | ID DECREMENT | ID ASSIGN expression
 
     print_statement         ::= PRINT expression
 
     expression              ::= comparison
 
-    comparison              ::= addition ( ( == | != | <= | >= | < | > ) addition )*
+    comparison              ::= addition [( == | != | <= | >= | < | > ) addition ]*
 
-    addition                ::= multiplication ( ( + | - ) multiplication )*
+    addition                ::= multiplication [( + | - ) multiplication ]*
 
-    multiplication          ::= unary ( ( * | / ) unary )*
+    multiplication          ::= unary [( * | / ) unary ]*
 
     unary                   ::= ( - | ! ) unary | primary
 
-    primary                 ::= NUMBER | STRING | TRUE | FALSE | expression | IDENTIFIER
+    primary                 ::= NUMBER | STRING | TRUE | FALSE | expression | ID
 
-## tokens
+## keywords and symbols
 
     IF          -> "if"
     ELSE        -> "else"
-    WHILE       -> "while"
     END         -> "end"
+    SWAP        -> "swap"
+    TAG         -> "@"
     PRINT       -> "print"
     TRUE        -> "true"
     FALSE       -> "false"
@@ -41,6 +40,10 @@
     DECREMENT   -> "--"
     ASSIGN      -> "="
     NEWLINE     -> "\n"
+
+Swap keyword swaps the values of two variables.
+
+Tag keyword is used to mark a statement with a tag. Tags can be used to jump to a statement.
 
 ### example valid programs
 
