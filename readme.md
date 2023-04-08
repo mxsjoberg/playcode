@@ -45,33 +45,39 @@ This is a work-in-progress.
     NEWLINE     -> "\n"
 
 ### example valid programs
-    
-    print 42
 
-    x = 42
-    # comment
-    if x < 0
-        print false
-    else
-        # another comment
-        print "positive"
-    end
-    # comment
-    y = 5
-    while y > 0
-        print y--
-    end
+```
+print 42
+```
 
-    # swap
-    x = 2
-    y = 3
-    swap x y
-    print y == 2 # true
+```
+x = 42
+# comment
+if x < 0
+    print false
+else
+    # another comment
+    print "positive"
+end
+# comment
+y = 5
+while y > 0
+    print y--
+end
+```
 
+```
+# swap
+x = 2
+y = 3
+swap x y
+print y == 2 # true
+```
 
-    # repeat
-    x = 0
-    @inc x++
-    goto @inc
-    print x # 2
-
+```
+# repeat
+x = 0
+@inc x++
+goto @inc
+print x # 2
+```
