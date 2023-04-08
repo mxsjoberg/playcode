@@ -44,7 +44,9 @@ This is a work-in-progress.
     ASSIGN      -> "="
     NEWLINE     -> "\n"
 
-### example valid program
+### example valid programs
+    
+    print 42
 
     x = 42
     # comment
@@ -59,4 +61,17 @@ This is a work-in-progress.
     while y > 0
         print y--
     end
+
+    # swap
+    x = 2
+    y = 3
+    swap x y
+    print y == 2 # true
+
+
+    # repeat
+    x = 0
+    @inc x++
+    goto @inc
+    print x # 2
 
