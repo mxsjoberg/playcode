@@ -6,13 +6,17 @@
 
     statement_list          ::= [TAG] statement | [TAG] statement statement_list
 
-    statement               ::= if_statement | assignment_statement | print_statement | swap_statement
+    statement               ::= if_statement | assignment_statement | print_statement | swap_statement | goto_statement
 
     if_statement            ::= IF expression NEWLINE statement_list [ ELSE statement_list ] END
 
     assignment_statement    ::= ID INCREMENT | ID DECREMENT | ID ASSIGN expression
 
     print_statement         ::= PRINT expression
+
+    swap_statement          ::= SWAP ID ID
+
+    goto_statement          ::= GOTO TAG
 
     expression              ::= comparison
 
