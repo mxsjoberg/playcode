@@ -1,16 +1,16 @@
-// lexer.cpp
+// pc.cpp
 
 /*
 
-program ::= statement+
+program           ::= statement+
+statement         ::= print_statement
+print_statement   ::= "print" expression
+expression        ::= integer
+integer           ::= [0-9]+
 
-statement ::= print_statement
+*/
 
-print_statement ::= "print" expression
-
-expression ::= integer
-
-integer ::= [0-9]+
+/*
 
 PRINT -> "print"
 INTEGER -> [0-9]+
