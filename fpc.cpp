@@ -254,7 +254,7 @@ AST parse_factor(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
 ///
 
 int evaluate(AST expression) {
-    // log("evaluate: " << expression.token.lexeme);
+    log("evaluate: " << expression.token.lexeme);
     if (expression.token.type == TokenType::INTEGER) {
         return std::stoi(expression.token.lexeme);
     } else if (expression.token.type == TokenType::PLUS) {
@@ -289,14 +289,14 @@ void interpret(AST tree) {
 ///
 
 int main() {
-    std::string source = "print 4 + 2";
+    std::string source = "print 4 + (2 * 2)";
     std::vector<Token> tokens = tokenize(source);
-    for (Token token : tokens) {
-     // std::cout << token.lexeme << " @ " << token.line << ":" << token.charIndex << std::endl;
-        std::cout << token.lexeme << std::endl;
-    }
+    // for (Token token : tokens) {
+    //     // std::cout << token.lexeme << " @ " << token.line << ":" << token.charIndex << std::endl;
+    //     std::cout << token.lexeme << std::endl;
+    // }
     AST statements = parse(tokens);
-    interpret(statements);
+    // interpret(statements);
 }
 
 
