@@ -43,8 +43,13 @@ enum class TokenType {
 };
 
 struct Token {
+    // base values
     TokenType type;
     std::string lexeme;
+    // other values
+    size_t line = 0;
+    size_t charIndex = 0;
+    std::string variableName;
 };
 
 #define log(x) std::cout << x << std::endl;
@@ -72,6 +77,7 @@ std::string upper(std::string& str) {
 // tokenize the source code
 std::vector<Token> tokenize(const std::string& source) {
     std::vector<Token> tokens;
+    size_t currentLine = 1;
     size_t currentCharIndex = 0;
     while (currentCharIndex < source.size()) {
         char ch = source[currentCharIndex];
@@ -79,31 +85,34 @@ std::vector<Token> tokenize(const std::string& source) {
             case ' ':
             case '\t':
             case '\r':
+                currentCharIndex++;
+                break;
             case '\n':
+                currentLine++;
                 currentCharIndex++;
                 break;
             case '+':
-                tokens.push_back({TokenType::PLUS, "+"});
+                tokens.push_back({TokenType::PLUS, "+", currentLine, currentCharIndex - 1});
                 currentCharIndex++;
                 break;
             case '-':
-                tokens.push_back({TokenType::MINUS, "-"});
+                tokens.push_back({TokenType::MINUS, "-", currentLine, currentCharIndex - 1});
                 currentCharIndex++;
                 break;
             case '*':
-                tokens.push_back({TokenType::MUL, "*"});
+                tokens.push_back({TokenType::MUL, "*", currentLine, currentCharIndex - 1});
                 currentCharIndex++;
                 break;
             case '/':
-                tokens.push_back({TokenType::DIV, "/"});
+                tokens.push_back({TokenType::DIV, "/", currentLine, currentCharIndex - 1});
                 currentCharIndex++;
                 break;
             case '(':
-                tokens.push_back({TokenType::LPAR, "("});
+                tokens.push_back({TokenType::LPAR, "(", currentLine, currentCharIndex - 1});
                 currentCharIndex++;
                 break;
             case ')':
-                tokens.push_back({TokenType::RPAR, ")"});
+                tokens.push_back({TokenType::RPAR, ")", currentLine, currentCharIndex - 1});
                 currentCharIndex++;
                 break;
             default:
@@ -113,7 +122,7 @@ std::vector<Token> tokenize(const std::string& source) {
                         currentCharIndex++;
                     }
                     std::string lexeme = source.substr(start, currentCharIndex - start);
-                    tokens.push_back({TokenType::INTEGER, lexeme});
+                    tokens.push_back({TokenType::INTEGER, lexeme, currentLine, currentCharIndex - lexeme.size()});
                 } else if (isalpha(ch)) {
                     size_t start = currentCharIndex;
                     while (isalnum(source[currentCharIndex]) && currentCharIndex < source.size()) {
@@ -121,7 +130,7 @@ std::vector<Token> tokenize(const std::string& source) {
                     }
                     std::string lexeme = source.substr(start, currentCharIndex - start);
                     if (lexeme == "print" || lexeme == "PRINT") {
-                        tokens.push_back({TokenType::PRINT, upper(lexeme)});
+                        tokens.push_back({TokenType::PRINT, upper(lexeme), currentLine, currentCharIndex - lexeme.size()});
                     } else {
                         throw std::runtime_error("Unexpected identifier");
                     }
@@ -245,7 +254,7 @@ AST parse_factor(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
 ///
 
 int evaluate(AST expression) {
-    log("evaluate: " << expression.token.lexeme);
+    // log("evaluate: " << expression.token.lexeme);
     if (expression.token.type == TokenType::INTEGER) {
         return std::stoi(expression.token.lexeme);
     } else if (expression.token.type == TokenType::PLUS) {
@@ -266,7 +275,7 @@ void interpret(AST tree) {
     if (node.token.type == TokenType::PRINT) {
         AST expression = node.children[0];
         int result = evaluate(expression);
-        std::cout << result << std::endl;
+        std::cout << "=> " << result << std::endl;
     } else {
         throw std::runtime_error("Unexpected token");
     }
@@ -282,9 +291,10 @@ void interpret(AST tree) {
 int main() {
     std::string source = "print 4 + 2";
     std::vector<Token> tokens = tokenize(source);
-    // for (Token token : tokens) {
-    //  std::cout << token.lexeme << std::endl;
-    // }
+    for (Token token : tokens) {
+     // std::cout << token.lexeme << " @ " << token.line << ":" << token.charIndex << std::endl;
+        std::cout << token.lexeme << std::endl;
+    }
     AST statements = parse(tokens);
     interpret(statements);
 }
