@@ -1,10 +1,5 @@
 # playcode: a playful programming language
 
-## TODO
-
-- [] rewrite without classes (use functions instead)
-    - classes makes it too hard to understand what is going on
-
 ## grammar
 
     program                 ::= statement_list
