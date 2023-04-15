@@ -317,11 +317,10 @@ void interpret(AST tree) {
     if (node.token.type == TokenType::PRINT) {
         AST expression = node.children[0];
         int result = evaluate(expression);
-        std::cout << "=> " << result << std::endl;
+        std::cout << "> " << result << std::endl;
     } else {
         throw std::runtime_error("Unexpected token");
     }
-
 }
 
 ///
@@ -331,15 +330,15 @@ void interpret(AST tree) {
 ///
 
 int main() {
-    std::string source = "print 4 + (2 / 2)";
+    std::string source = "print 4 + (2 * 2)";
     std::vector<Token> tokens = tokenize(source);
     // for (Token token : tokens) {
     //     // std::cout << token.lexeme << " @ " << token.line << ":" << token.charIndex << std::endl;
     //     std::cout << token.lexeme << std::endl;
     // }
     AST statements = parse(tokens);
-    log(ASTtoString(statements));
-    // interpret(statements);
+    // log(ASTtoString(statements));
+    interpret(statements);
 }
 
 
