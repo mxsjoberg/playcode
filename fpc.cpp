@@ -171,16 +171,19 @@ AST parse_statement(const std::vector<Token>& tokens, size_t& currentTokenIndex)
 // parse : expression ::= term (PLUS | MINUS) term)*
 AST parse_expression(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
     AST expression;
-    expression.token = tokens[currentTokenIndex];
+    // expression.token = tokens[currentTokenIndex];
     // currentTokenIndex++;
     AST term = parse_term(tokens, currentTokenIndex);
     expression.children.push_back(term);
     while (currentTokenIndex < tokens.size()) {
         Token token = tokens[currentTokenIndex];
         if (token.type == TokenType::PLUS || token.type == TokenType::MINUS) {
-            AST op;
-            op.token = token;
-            expression.children.push_back(op);
+            // log(token.lexeme);
+            // AST op;
+            // op.token = token;
+            // expression.children.push_back(expression);
+            expression.token = token;
+            // log(expression.token.lexeme)
             currentTokenIndex++;
             term = parse_term(tokens, currentTokenIndex);
             expression.children.push_back(term);
@@ -195,7 +198,8 @@ AST parse_expression(const std::vector<Token>& tokens, size_t& currentTokenIndex
 AST parse_term(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
     AST term;
     AST factor = parse_factor(tokens, currentTokenIndex);
-    term.children.push_back(factor);
+    term = factor;
+    // term.children.push_back(factor);
     while (currentTokenIndex < tokens.size()) {
         Token token = tokens[currentTokenIndex];
         if (token.type == TokenType::MUL || token.type == TokenType::DIV) {
@@ -218,6 +222,7 @@ AST parse_factor(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
     AST expression;
     switch (token.type) {
         case TokenType::INTEGER:
+            // log(token.lexeme);
             currentTokenIndex++;
             return AST{token};
         case TokenType::LPAR:
@@ -239,10 +244,34 @@ AST parse_factor(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
 //
 ///
 
-void interpret(AST tree) {
-    // TODO
+int evaluate(AST expression) {
+    log("evaluate: " << expression.token.lexeme);
+    if (expression.token.type == TokenType::INTEGER) {
+        return std::stoi(expression.token.lexeme);
+    } else if (expression.token.type == TokenType::PLUS) {
+        return evaluate(expression.children[0]) + evaluate(expression.children[1]);
+    } else if (expression.token.type == TokenType::MINUS) {
+        return evaluate(expression.children[0]) - evaluate(expression.children[1]);
+    } else if (expression.token.type == TokenType::MUL) {
+        return evaluate(expression.children[0]) * evaluate(expression.children[1]);
+    } else if (expression.token.type == TokenType::DIV) {
+        return evaluate(expression.children[0]) / evaluate(expression.children[1]);
+    } else {
+        throw std::runtime_error("Unexpected token");
+    }
 }
 
+void interpret(AST tree) {
+    AST node = tree.children[0];
+    if (node.token.type == TokenType::PRINT) {
+        AST expression = node.children[0];
+        int eval = evaluate(expression);
+        std::cout << "eval: " << eval << std::endl;
+    } else {
+        throw std::runtime_error("Unexpected token");
+    }
+
+}
 
 ///
 //
