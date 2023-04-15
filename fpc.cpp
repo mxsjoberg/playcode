@@ -265,8 +265,8 @@ void interpret(AST tree) {
     AST node = tree.children[0];
     if (node.token.type == TokenType::PRINT) {
         AST expression = node.children[0];
-        int eval = evaluate(expression);
-        std::cout << "eval: " << eval << std::endl;
+        int result = evaluate(expression);
+        std::cout << result << std::endl;
     } else {
         throw std::runtime_error("Unexpected token");
     }
