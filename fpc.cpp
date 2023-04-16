@@ -195,8 +195,8 @@ AST parse_factor(const std::vector<Token>& tokens, size_t& currentTokenIndex);
 // parse : program ::= statement+
 AST parse(const std::vector<Token>& tokens) {
     size_t currentTokenIndex = 0;
-    // program
     AST program;
+    program.token = Token{TokenType::BOF};
     // statement+
     while (currentTokenIndex < tokens.size()) {
         program.children.push_back(parse_statement(tokens, currentTokenIndex));
@@ -206,10 +206,10 @@ AST parse(const std::vector<Token>& tokens) {
 
 // parse : statement ::= PRINT expression
 AST parse_statement(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
-    // statement
     AST statement;
     // PRINT
     statement.token = tokens[currentTokenIndex];
+    // log(tokenToString(statement.token));
     currentTokenIndex++;
     // expression
     statement.children.push_back(parse_expression(tokens, currentTokenIndex));
@@ -218,35 +218,34 @@ AST parse_statement(const std::vector<Token>& tokens, size_t& currentTokenIndex)
 
 // parse : expression ::= term ((PLUS | MINUS) term)*
 AST parse_expression(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
-    // expression
-    AST expression;
     // term
-    AST term = parse_term(tokens, currentTokenIndex);
-    expression = term;
+    AST expression = parse_term(tokens, currentTokenIndex);
     // ((PLUS | MINUS) term)*
     while (tokens[currentTokenIndex].type == TokenType::PLUS || tokens[currentTokenIndex].type == TokenType::MINUS) {
-        expression.token = tokens[currentTokenIndex];
+        // (PLUS | MINUS)
+        Token token = tokens[currentTokenIndex];
+        // log(tokenToString(token));
         currentTokenIndex++;
-        expression.children = {term};
         // term
-        expression.children.push_back(parse_term(tokens, currentTokenIndex));
+        auto children = {expression, parse_term(tokens, currentTokenIndex)};
+        expression = AST{token, children};
     }
     return expression;
 }
 
 // parse : term ::= factor ((MUL | DIV) factor)*
 AST parse_term(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
-    AST term;
     // factor
-    AST factor = parse_factor(tokens, currentTokenIndex);
-    term = factor;
+    AST term = parse_factor(tokens, currentTokenIndex);
     // ((MUL | DIV) factor)*
     while (tokens[currentTokenIndex].type == TokenType::MUL || tokens[currentTokenIndex].type == TokenType::DIV) {
-        term.token = tokens[currentTokenIndex];
+        // (MUL | DIV)
+        Token token = tokens[currentTokenIndex];
+        // log(tokenToString(token));
         currentTokenIndex++;
-        term.children = {factor};
         // factor
-        term.children.push_back(parse_factor(tokens, currentTokenIndex));
+        auto children = {term, parse_factor(tokens, currentTokenIndex)};
+        term = AST{token, children};
     }
     return term;
 }
@@ -254,10 +253,10 @@ AST parse_term(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
 // parse : factor ::= PLUS factor | MINUS factor | INTEGER | LPAR expression RPAR
 AST parse_factor(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
     AST expression;
-    // factor
     AST factor;
     // PLUS factor | MINUS factor | INTEGER | LPAR expression RPAR
     Token token = tokens[currentTokenIndex];
+    // log(tokenToString(token));
     switch (token.type) {
         // PLUS factor
         case TokenType::PLUS:
@@ -286,10 +285,10 @@ AST parse_factor(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
             currentTokenIndex++;
             // expression
             expression = parse_expression(tokens, currentTokenIndex);
+            // RPAR
             if (tokens[currentTokenIndex].type != TokenType::RPAR) {
                 throw std::runtime_error("Expected ')'");
             }
-            // RPAR
             currentTokenIndex++;
             return expression;
         default:
@@ -338,7 +337,7 @@ void interpret(AST tree) {
 ///
 
 int main() {
-    std::string source = "print 4 + (2 * 2)";
+    std::string source = "print 1 + (2 * 4) - (6 / 2)";
     std::vector<Token> tokens = tokenize(source);
     // for (Token token : tokens) {
     //     // std::cout << token.lexeme << " @ " << token.line << ":" << token.charIndex << std::endl;
@@ -346,7 +345,23 @@ int main() {
     // }
     AST statements = parse(tokens);
     log(ASTtoString(statements));
+    // PROGRAM[
+    //  PRINT[
+    //   "-"[
+    //    "+"[
+    //     INTEGER(1),
+    //     "*"[
+    //      INTEGER(2),
+    //      INTEGER(4)
+    //     ]
+    //    ],
+    //    "/"[
+    //     INTEGER(6),
+    //     INTEGER(2)
+    //    ]
+    //   ]
+    //  ]
+    // ]
     interpret(statements);
+    // > 6
 }
-
-
