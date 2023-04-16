@@ -38,12 +38,11 @@ enum class TokenType {
 };
 
 struct Token {
-    // base values
     TokenType type;
     std::string lexeme;
-    // other values
     size_t line = 0;
     size_t charIndex = 0;
+    int value = 0;
     std::string variableName;
 };
 
@@ -195,17 +194,19 @@ AST parse_factor(const std::vector<Token>& tokens, size_t& currentTokenIndex);
 
 // parse : program ::= statement+
 AST parse(const std::vector<Token>& tokens) {
-    AST tree;
     size_t currentTokenIndex = 0;
+    // program
+    AST program;
     // statement+
     while (currentTokenIndex < tokens.size()) {
-        tree.children.push_back(parse_statement(tokens, currentTokenIndex));
+        program.children.push_back(parse_statement(tokens, currentTokenIndex));
     }
-    return tree;
+    return program;
 }
 
 // parse : statement ::= PRINT expression
 AST parse_statement(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
+    // statement
     AST statement;
     // PRINT
     statement.token = tokens[currentTokenIndex];
@@ -217,23 +218,18 @@ AST parse_statement(const std::vector<Token>& tokens, size_t& currentTokenIndex)
 
 // parse : expression ::= term ((PLUS | MINUS) term)*
 AST parse_expression(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
+    // expression
     AST expression;
     // term
     AST term = parse_term(tokens, currentTokenIndex);
     expression = term;
     // ((PLUS | MINUS) term)*
-    while (currentTokenIndex < tokens.size()) {
-        Token token = tokens[currentTokenIndex];
-        if (token.type == TokenType::PLUS || token.type == TokenType::MINUS) {
-            // PLUS | MINUS
-            expression.token = token;
-            expression.children.push_back(term);
-            currentTokenIndex++;
-            // term
-            expression.children.push_back(parse_term(tokens, currentTokenIndex));
-        } else {
-            break;
-        }
+    while (tokens[currentTokenIndex].type == TokenType::PLUS || tokens[currentTokenIndex].type == TokenType::MINUS) {
+        expression.token = tokens[currentTokenIndex];
+        currentTokenIndex++;
+        expression.children = {term};
+        // term
+        expression.children.push_back(parse_term(tokens, currentTokenIndex));
     }
     return expression;
 }
@@ -245,44 +241,39 @@ AST parse_term(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
     AST factor = parse_factor(tokens, currentTokenIndex);
     term = factor;
     // ((MUL | DIV) factor)*
-    while (currentTokenIndex < tokens.size()) {
-        Token token = tokens[currentTokenIndex];
-        if (token.type == TokenType::MUL || token.type == TokenType::DIV) {
-            // MUL | DIV
-            term.token = token;
-            term.children.push_back(factor);
-            currentTokenIndex++;
-            // factor
-            term.children.push_back(parse_factor(tokens, currentTokenIndex));
-        } else {
-            break;
-        }
+    while (tokens[currentTokenIndex].type == TokenType::MUL || tokens[currentTokenIndex].type == TokenType::DIV) {
+        term.token = tokens[currentTokenIndex];
+        currentTokenIndex++;
+        term.children = {factor};
+        // factor
+        term.children.push_back(parse_factor(tokens, currentTokenIndex));
     }
     return term;
 }
 
 // parse : factor ::= PLUS factor | MINUS factor | INTEGER | LPAR expression RPAR
 AST parse_factor(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
-    AST factor;
     AST expression;
-    Token token = tokens[currentTokenIndex];
+    // factor
+    AST factor;
     // PLUS factor | MINUS factor | INTEGER | LPAR expression RPAR
+    Token token = tokens[currentTokenIndex];
     switch (token.type) {
         // PLUS factor
         case TokenType::PLUS:
             // PLUS
+            factor.token = token;
             currentTokenIndex++;
             // factor
-            factor = parse_factor(tokens, currentTokenIndex);
-            factor.token = token;
+            factor.children.push_back(parse_factor(tokens, currentTokenIndex));
             return factor;
         // MINUS factor
         case TokenType::MINUS:
             // MINUS
+            factor.token = token;
             currentTokenIndex++;
             // factor
-            factor = parse_factor(tokens, currentTokenIndex);
-            factor.token = token;
+            factor.children.push_back(parse_factor(tokens, currentTokenIndex));
             return factor;
         // INTEGER
         case TokenType::INTEGER:
@@ -347,7 +338,7 @@ void interpret(AST tree) {
 ///
 
 int main() {
-    std::string source = "print 4 + (2 * 1) - 1";
+    std::string source = "print 4 + (2 * 2)";
     std::vector<Token> tokens = tokenize(source);
     // for (Token token : tokens) {
     //     // std::cout << token.lexeme << " @ " << token.line << ":" << token.charIndex << std::endl;
