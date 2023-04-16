@@ -1,5 +1,9 @@
 # playcode: a playful programming language
 
+## TODO
+
+- [ ] delete `pc.cpp` -> rename `fpc.cpp` to `pc.cpp`
+
 ## grammar
 
     program                 ::= statement_list
