@@ -21,9 +21,10 @@ INTEGER -> [0-9]+
 
 */
 
-#import <iostream>
-#import <string>
-#import <vector>
+#include <iostream>
+#include <regex>
+#include <string>
+#include <vector>
 
 enum class TokenType {
     BOF,
@@ -46,7 +47,8 @@ struct Token {
     std::string variableName;
 };
 
-#define log(x) std::cout << x << std::endl;
+#define print(x) std::cout << x << std::endl;
+#define print_vector(v) for (Token token : v) { std::cout << token.lexeme << std::endl; };
 
 ///
 //
@@ -209,7 +211,6 @@ AST parse_statement(const std::vector<Token>& tokens, size_t& currentTokenIndex)
     AST statement;
     // PRINT
     statement.token = tokens[currentTokenIndex];
-    // log(tokenToString(statement.token));
     currentTokenIndex++;
     // expression
     statement.children.push_back(parse_expression(tokens, currentTokenIndex));
@@ -224,7 +225,6 @@ AST parse_expression(const std::vector<Token>& tokens, size_t& currentTokenIndex
     while (tokens[currentTokenIndex].type == TokenType::PLUS || tokens[currentTokenIndex].type == TokenType::MINUS) {
         // (PLUS | MINUS)
         Token token = tokens[currentTokenIndex];
-        // log(tokenToString(token));
         currentTokenIndex++;
         // term
         auto children = {expression, parse_term(tokens, currentTokenIndex)};
@@ -241,7 +241,6 @@ AST parse_term(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
     while (tokens[currentTokenIndex].type == TokenType::MUL || tokens[currentTokenIndex].type == TokenType::DIV) {
         // (MUL | DIV)
         Token token = tokens[currentTokenIndex];
-        // log(tokenToString(token));
         currentTokenIndex++;
         // factor
         auto children = {term, parse_factor(tokens, currentTokenIndex)};
@@ -256,7 +255,6 @@ AST parse_factor(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
     AST factor;
     // PLUS factor | MINUS factor | INTEGER | LPAR expression RPAR
     Token token = tokens[currentTokenIndex];
-    // log(tokenToString(token));
     switch (token.type) {
         // PLUS factor
         case TokenType::PLUS:
@@ -303,7 +301,6 @@ AST parse_factor(const std::vector<Token>& tokens, size_t& currentTokenIndex) {
 ///
 
 int evaluate(AST expression) {
-    // log("evaluate: " << expression.token.lexeme);
     if (expression.token.type == TokenType::INTEGER) {
         return std::stoi(expression.token.lexeme);
     } else if (expression.token.type == TokenType::PLUS) {
@@ -320,13 +317,14 @@ int evaluate(AST expression) {
 }
 
 void interpret(AST tree) {
-    AST node = tree.children[0];
-    if (node.token.type == TokenType::PRINT) {
-        AST expression = node.children[0];
-        int result = evaluate(expression);
-        std::cout << "> " << result << std::endl;
-    } else {
-        throw std::runtime_error("Unexpected token");
+    for (AST node : tree.children) {
+        // PRINT
+        if (node.token.type == TokenType::PRINT) {
+            auto result = evaluate(node.children[0]);
+            std::cout << "> " << result << std::endl;
+        } else {
+            throw std::runtime_error("Unexpected token");
+        }
     }
 }
 
@@ -337,14 +335,23 @@ void interpret(AST tree) {
 ///
 
 int main() {
-    std::string source = "print 1 + (2 * 4) - (6 / 2)";
+    // std::string source = "print 1 + (2 * 4) - (6 / 2)";
+    std::string input = R"(
+        print 42
+        print 1 + (2 * 4) - (6 / 2)
+    )";
+    std::regex pattern(R"(^\s+)", std::regex::multiline);
+    std::string source = std::regex_replace(input, pattern, "");
+    // tokenize
     std::vector<Token> tokens = tokenize(source);
     // for (Token token : tokens) {
     //     // std::cout << token.lexeme << " @ " << token.line << ":" << token.charIndex << std::endl;
     //     std::cout << token.lexeme << std::endl;
     // }
+    // print_vector(tokens);
+    // parse
     AST statements = parse(tokens);
-    log(ASTtoString(statements));
+    print(ASTtoString(statements));
     // PROGRAM[
     //  PRINT[
     //   "-"[
@@ -362,6 +369,7 @@ int main() {
     //   ]
     //  ]
     // ]
+    // interpret
     interpret(statements);
     // > 6
 }
