@@ -48,7 +48,6 @@ struct Token {
 };
 
 #define print(x) std::cout << x << std::endl;
-#define print_vector(v) for (Token token : v) { std::cout << token.lexeme << std::endl; };
 
 ///
 //
@@ -348,7 +347,6 @@ int main() {
     //     // std::cout << token.lexeme << " @ " << token.line << ":" << token.charIndex << std::endl;
     //     std::cout << token.lexeme << std::endl;
     // }
-    // print_vector(tokens);
     // parse
     AST statements = parse(tokens);
     print(ASTtoString(statements));
