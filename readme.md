@@ -62,7 +62,7 @@
 
 Swap keyword swaps the values of two variables.
 
-Tag keyword is used to mark a statement with a tag. Tags can be used to jump to a statement.
+A tag, such as `@my_tag` is used to mark a statement with a tag (similar to functions). Tags can be used to jump to a statement.
 
 ### example valid programs
 
@@ -95,3 +95,9 @@ x = 0
 goto @inc
 print x # 2
 ```
+
+## issues
+
+- [ ] `goto` jumps to the first statement with the given tag, how to deal with multiple same tags (make unique?)
+- [ ] `goto` jumps repeat only statement after tag, or everything after tag in program? (if everything, perhaps add keyword `once` to avoid endless repetition)
+
