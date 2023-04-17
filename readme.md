@@ -34,7 +34,6 @@
     ELSE        -> "else"
     END         -> "end"
     SWAP        -> "swap"
-    TAG         -> "@"
     GOTO        -> "goto"
     PRINT       -> "print"
     INCREMENT   -> "++"
@@ -54,6 +53,7 @@
     EQ          -> "=="
     NEQ         -> "!="
 
+    TAG         -> @[a-zA-Z_][a-zA-Z0-9_]*
     ID          -> [a-zA-Z_][a-zA-Z0-9_]*
     INTEGER     -> [0-9]+
     TRUE        -> "true"
@@ -74,9 +74,8 @@ print 42
 x = 42
 # comment
 if x < 0:
-    print 0
+    print false
 else
-    # another comment
     print "positive"
 end
 ```
@@ -86,7 +85,7 @@ end
 x = 2
 y = 3
 swap x y
-print y # 2
+print y == 2 # true
 ```
 
 ```
