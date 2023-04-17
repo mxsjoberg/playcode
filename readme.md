@@ -6,36 +6,30 @@
 
 ## grammar
 
-    program                 ::= statement_list
+    program                 ::= (TAG)? statement+
 
-    statement_list          ::= [TAG] statement | [TAG] statement statement_list
+    statement               ::= if_statement | assignment_statement | swap_statement | goto_statement | print_statement
 
-    statement               ::= if_statement | assignment_statement | print_statement | swap_statement | goto_statement
+        if_statement            ::= IF condition COLON statement+ (ELSE statement_list)? END
 
-    if_statement            ::= IF expression NEWLINE statement_list [ ELSE statement_list ] END
+        assignment_statement    ::= ID INCREMENT | ID DECREMENT | ID ASSIGN expression
 
-    assignment_statement    ::= ID INCREMENT | ID DECREMENT | ID ASSIGN expression
+        swap_statement          ::= SWAP ID ID
 
-    print_statement         ::= PRINT expression
+        goto_statement          ::= GOTO TAG
 
-    swap_statement          ::= SWAP ID ID
+        print_statement         ::= PRINT expression
 
-    goto_statement          ::= GOTO TAG
+    condition               ::= (TRUE | FALSE) | expression ((LT | GT | LE | GE | EQ | NEQ) expression)?
 
-    expression              ::= comparison
+    expression              ::= term ((PLUS | MINUS) term)*
 
-    comparison              ::= addition [( == | != | <= | >= | < | > ) addition ]*
+    term                    ::= factor ((MUL | DIV) factor)*
 
-    addition                ::= multiplication [( + | - ) multiplication ]*
+    factor                  ::= PLUS factor | MINUS factor | INTEGER | STRING | ID | LPAR expression RPAR
 
-    multiplication          ::= unary [( * | / ) unary ]*
-
-    unary                   ::= ( - | ! ) unary | primary
-
-    primary                 ::= NUMBER | STRING | TRUE | FALSE | expression | ID
-
-## keywords and symbols
-
+## tokens
+    
     IF          -> "if"
     ELSE        -> "else"
     END         -> "end"
@@ -43,12 +37,28 @@
     TAG         -> "@"
     GOTO        -> "goto"
     PRINT       -> "print"
-    TRUE        -> "true"
-    FALSE       -> "false"
     INCREMENT   -> "++"
     DECREMENT   -> "--"
     ASSIGN      -> "="
-    NEWLINE     -> "\n"
+    COLON       -> ":"
+    PLUS        -> "+"
+    MINUS       -> "-"
+    MUL         -> "*"
+    DIV         -> "/"
+    LPAR        -> "("
+    RPAR        -> ")"
+    LT          -> "<"
+    GT          -> ">"
+    LE          -> "<="
+    GE          -> ">="
+    EQ          -> "=="
+    NEQ         -> "!="
+
+    ID          -> [a-zA-Z_][a-zA-Z0-9_]*
+    INTEGER     -> [0-9]+
+    TRUE        -> "true"
+    FALSE       -> "false"
+    STRING      -> ".*"
 
 Swap keyword swaps the values of two variables.
 
@@ -63,16 +73,11 @@ print 42
 ```
 x = 42
 # comment
-if x < 0
-    print false
+if x < 0:
+    print 0
 else
     # another comment
     print "positive"
-end
-# comment
-y = 5
-while y > 0
-    print y--
 end
 ```
 
@@ -81,7 +86,7 @@ end
 x = 2
 y = 3
 swap x y
-print y == 2 # true
+print y # 2
 ```
 
 ```
