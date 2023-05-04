@@ -163,29 +163,36 @@ struct AST {
     std::vector<AST> children;
 };
 
-std::string ASTtoString(const AST& ast, size_t indent = 0) {
-    std::string output = "";
-    for (size_t i = 0; i < indent; i++) {
-        output += " ";
-    }
+// std::string ASTtoString(const AST& ast, size_t indent = 0) {
+//     std::string output = "";
+//     for (size_t i = 0; i < indent; i++) {
+//         output += " ";
+//     }
 
-    output += tokenToString(ast.token);
+//     output += tokenToString(ast.token);
 
-    if (ast.children.size() > 0) {
-        output += "[\n";
-        for (size_t i = 0; i < ast.children.size(); i++) {
-            output += ASTtoString(ast.children[i], indent + 1);
-            if (i < ast.children.size() - 1) {
-                output += ",\n";
-            }
-        }
-        output += "\n";
-        for (size_t i = 0; i < indent; i++) {
-            output += " ";
-        }
-        output += "]";
+//     if (ast.children.size() > 0) {
+//         output += "[\n";
+//         for (size_t i = 0; i < ast.children.size(); i++) {
+//             output += ASTtoString(ast.children[i], indent + 1);
+//             if (i < ast.children.size() - 1) {
+//                 output += ",\n";
+//             }
+//         }
+//         output += "\n";
+//         for (size_t i = 0; i < indent; i++) {
+//             output += " ";
+//         }
+//         output += "]";
+//     }
+//     return output;
+// }
+
+void printTree(const AST& node, int level = 0) {
+    std::cout << std::string(level * 2, ' ') << node.token.lexeme << std::endl;
+    for (const AST& child : node.children) {
+        printTree(child, level + 1);
     }
-    return output;
 }
 
 AST parse_expression(const std::vector<Token>& tokens, size_t& currentTokenIndex);
@@ -349,7 +356,7 @@ int main() {
     // }
     // parse
     AST statements = parse(tokens);
-    print(ASTtoString(statements));
+    // print(ASTtoString(statements));
     // PROGRAM[
     //  PRINT[
     //   "-"[
@@ -367,6 +374,7 @@ int main() {
     //   ]
     //  ]
     // ]
+    printTree(statements);
     // interpret
     interpret(statements);
     // > 6
