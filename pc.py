@@ -13,13 +13,15 @@ RESERVED = [
     "PRINT"
 ]
 
-def print_tree(tree, indent_level=-1):
+def print_tree(tree, indent_level=-2):
     if isinstance(tree, list):
         for item in tree:
             print_tree(item, indent_level + 1)
     else:
         indent = '\t' * indent_level
         print(f"{indent}{tree}")
+
+# **** token ****
 
 class TokenType(Enum):
     KEYWORD     = 1
@@ -35,6 +37,8 @@ class Token(object):
             return f"Token({self.m_type}, {self.m_value})"
         else:
             return f"Token({self.m_type})"
+
+# **** lexer ****
 
 def tokenize(source):
     tokens = []
@@ -71,6 +75,8 @@ def tokenize(source):
 
     return tokens
 
+# **** parser ****
+
 def parse(tokens):
     tree = []
     current_token = None
@@ -78,7 +84,7 @@ def parse(tokens):
 
     while current_token_index < len(tokens):
         program, current_token_index = parse_program(tokens, current_token_index)
-        tree = program
+        tree.append(program)
 
     return tree
 
@@ -107,12 +113,28 @@ def parse_factor(tokens, current_token_index):
     match current_token.m_type:
         case TokenType.INTEGER:
             # INTEGER
-            factor.append(current_token.m_value)
+            factor.append(int(current_token.m_value))
             current_token_index += 1
         case _:
             raise Exception("parse_factor", "Unexpected token:", tokens[current_token_index])
 
     return factor, current_token_index
+
+# **** interpreter ****
+
+def interpret(tree):
+    result = ''
+    for node in tree:
+        if isinstance(node, list):
+            node, children = node[0], node[1] 
+        if node == PRINT:
+            print(interpret(children))
+        else:
+            result = node
+
+    return result
+
+# **** main ****
 
 source = """
 print 42
@@ -122,4 +144,7 @@ tokens = tokenize(source)
 # for token in tokens: print(token)
 
 tree = parse(tokens)
-print_tree(tree)
+# print(tree)
+# print_tree(tree)
+
+interpret(tree)
