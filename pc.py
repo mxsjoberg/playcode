@@ -1,21 +1,29 @@
 #!/usr/local python3.11
 
 import sys
-# print(sys.version)
-
 from enum import Enum
+
+# print(sys.version)
 
 # tokens
 PRINT       = "PRINT"
 INTEGER     = "INTEGER"
 
-class TokenType(Enum):
-    KEYWORD     = 1
-    INTEGER     = 2
-
 RESERVED = [
     "PRINT"
 ]
+
+def print_tree(tree, indent_level=-1):
+    if isinstance(tree, list):
+        for item in tree:
+            print_tree(item, indent_level + 1)
+    else:
+        indent = '\t' * indent_level
+        print(f"{indent}{tree}")
+
+class TokenType(Enum):
+    KEYWORD     = 1
+    INTEGER     = 2
 
 class Token(object):
     def __init__(self, m_type, m_value):
@@ -24,9 +32,9 @@ class Token(object):
 
     def __repr__(self):
         if self.m_value:
-            return f'Token({self.m_type}, {self.m_value})'
+            return f"Token({self.m_type}, {self.m_value})"
         else:
-            return f'Token({self.m_type})'
+            return f"Token({self.m_type})"
 
 def tokenize(source):
     tokens = []
@@ -70,7 +78,7 @@ def parse(tokens):
 
     while current_token_index < len(tokens):
         program, current_token_index = parse_program(tokens, current_token_index)
-        tree.append(program)
+        tree = program
 
     return tree
 
@@ -79,16 +87,15 @@ def parse_program(tokens, current_token_index):
     current_token = tokens[current_token_index]
     match current_token.m_type:
         case TokenType.KEYWORD:
-            match current_token.m_value:
-                case 'PRINT':
-                    # PRINT
-                    program.append(PRINT)
-                    current_token_index += 1
-                    # INTEGER
-                    factor, current_token_index = parse_factor(tokens, current_token_index)
-                    program.append(factor)
-                case _:
-                    raise Exception("parse_program", "Unexpected token:", tokens[current_token_index])
+            # PRINT
+            if current_token.m_value == PRINT:
+                program.append(PRINT)
+                current_token_index += 1
+                # INTEGER
+                factor, current_token_index = parse_factor(tokens, current_token_index)
+                program.append(factor)
+            else:
+                raise Exception("parse_program", "Unexpected token:", tokens[current_token_index])
         case _:
             raise Exception("parse_program", "Unexpected token:", tokens[current_token_index])
 
@@ -100,7 +107,7 @@ def parse_factor(tokens, current_token_index):
     match current_token.m_type:
         case TokenType.INTEGER:
             # INTEGER
-            factor.append(INTEGER)
+            factor.append(current_token.m_value)
             current_token_index += 1
         case _:
             raise Exception("parse_factor", "Unexpected token:", tokens[current_token_index])
@@ -112,6 +119,7 @@ print 42
 """
 
 tokens = tokenize(source)
-for token in tokens: print(token)
+# for token in tokens: print(token)
 
-print(parse(tokens))
+tree = parse(tokens)
+print_tree(tree)
