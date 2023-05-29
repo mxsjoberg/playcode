@@ -2,8 +2,7 @@
 
 import sys
 from enum import Enum
-
-# print(sys.version)
+# print("Using Python", sys.version.split()[0])
 
 # tokens
 PRINT       = "PRINT"
