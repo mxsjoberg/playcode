@@ -240,9 +240,8 @@ def interpret(tree):
         right = None
 
     match left.m_type:
-        case TokenType.KEYWORD:
-            if left.m_value == PRINT:
-                print(interpret(right))
+        case TokenType.KEYWORD if left.m_value == PRINT:
+            print(interpret(right))
         case TokenType.PLUS:
             result = int(interpret(right[0])) + int(interpret(right[1]))
         case TokenType.MINUS:
