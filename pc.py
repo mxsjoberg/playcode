@@ -50,7 +50,7 @@ class Token(object):
 
     def __repr__(self):
         if self.m_value:
-            return f"Token({self.m_type}, {self.m_value})"
+            return f"Token({self.m_type}, '{self.m_value}')"
         else:
             return f"Token({self.m_type})"
 
@@ -74,8 +74,17 @@ def tokenize(source):
                 tokens.append(Token(TokenType.PLUS, PLUS))
                 current_char_index += 1
             case '-':
-                tokens.append(Token(TokenType.MINUS, MINUS))
-                current_char_index += 1
+                # comment
+                next_char = source[current_char_index + 1]
+                if next_char == '-' or next_char == '>':
+                    current_char_index += 1
+                    # skip until newline
+                    while source[current_char_index] != '\n':
+                        current_char_index += 1
+                # minus
+                else:
+                    tokens.append(Token(TokenType.MINUS, MINUS))
+                    current_char_index += 1
             case '*':
                 tokens.append(Token(TokenType.MULTIPLY, MULTIPLY))
                 current_char_index += 1
@@ -254,11 +263,11 @@ def interpret(tree):
 # **** main ****
 
 source = """
-print 1 + (2 * 4) - (6 / 2)
+print 1 + (2 * 4) - (6 / 2) -> 6
 """
 
 tokens = tokenize(source)
-# for token in tokens: print(token)
+for token in tokens: print(token)
 
 tree = parse(tokens)
 # print(tree)
