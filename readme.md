@@ -1,4 +1,12 @@
-# playcode: a playful programming language
+# PlayCode: A Playful Programming Language
+
+```
+ ______  __       ______   __  __   ______   ______   _____    ______    
+/\  == \/\ \     /\  __ \ /\ \_\ \ /\  ___\ /\  __ \ /\  __-. /\  ___\   
+\ \  _-/\ \ \____\ \  __ \\ \____ \\ \ \____\ \ \/\ \\ \ \/\ \\ \  __\   
+ \ \_\   \ \_____\\ \_\ \_\\/\_____\\ \_____\\ \_____\\ \____- \ \_____\ 
+  \/_/    \/_____/ \/_/\/_/ \/_____/ \/_____/ \/_____/ \/____/  \/_____/ 
+```
 
 PlayCode is procedural because knowing-how is more important than knowing-that, i.e. [street smarts](https://en.wikipedia.org/wiki/Procedural_knowledge). It will most likely be dynamically typed because no one have time for types anyway. There will be numbers, strings, lists, if-statements, for-loops, variables, and comments. There will probably also be a lot of things that are not yet decided.
 
