@@ -23,7 +23,7 @@ RESERVED = [
     "PRINT"
 ]
 
-def print_tree(tree, indent_level=-2):
+def print_tree(tree, indent_level=-1):
     if isinstance(tree, list):
         for item in tree:
             print_tree(item, indent_level + 1)
@@ -127,7 +127,7 @@ def parse(tokens):
 
     while current_token_index < len(tokens):
         program, current_token_index = parse_program(tokens, current_token_index)
-        tree.append(program)
+        tree = program
 
     return tree
 
@@ -274,4 +274,4 @@ tree = parse(tokens)
 # print(tree)
 print_tree(tree)
 
-interpret(tree[0])
+interpret(tree)
