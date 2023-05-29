@@ -268,7 +268,7 @@ print 1 + (2 * 4) - (6 / 2) -> 6
 """
 
 tokens = tokenize(source)
-for token in tokens: print(token)
+# for token in tokens: print(token)
 
 tree = parse(tokens)
 # print(tree)
