@@ -8,6 +8,8 @@ from enum import Enum
 # tokens
 PRINT       = "PRINT"
 INTEGER     = "INTEGER"
+PLUS        = "PLUS"
+MINUS       = "MINUS"
 
 RESERVED = [
     "PRINT"
@@ -26,6 +28,8 @@ def print_tree(tree, indent_level=-2):
 class TokenType(Enum):
     KEYWORD     = 1
     INTEGER     = 2
+    PLUS        = 3
+    MINUS       = 4
 
 class Token(object):
     def __init__(self, m_type, m_value):
@@ -53,6 +57,12 @@ def tokenize(source):
                 current_char_index += 1
             case '\n':
                 current_line += 1
+                current_char_index += 1
+            case '+':
+                tokens.append(Token(TokenType.PLUS, PLUS))
+                current_char_index += 1
+            case '-':
+                tokens.append(Token(TokenType.MINUS, MINUS))
                 current_char_index += 1
             case _:
                 if current_char.isdigit():
@@ -88,18 +98,19 @@ def parse(tokens):
 
     return tree
 
+# program       ::= PRINT expression
 def parse_program(tokens, current_token_index):
     program = []
     current_token = tokens[current_token_index]
+    current_token_index += 1
     match current_token.m_type:
         case TokenType.KEYWORD:
             # PRINT
             if current_token.m_value == PRINT:
-                program.append(PRINT)
-                current_token_index += 1
-                # INTEGER
-                factor, current_token_index = parse_factor(tokens, current_token_index)
-                program.append(factor)
+                program.append(current_token)
+                # expression
+                expression, current_token_index = parse_expression(tokens, current_token_index)
+                program.append(expression)
             else:
                 raise Exception("parse_program", "Unexpected token:", tokens[current_token_index])
         case _:
@@ -107,14 +118,42 @@ def parse_program(tokens, current_token_index):
 
     return program, current_token_index
 
+# expression    ::= factor ((PLUS | MINUS) factor)*
+def parse_expression(tokens, current_token_index):
+    expression = []
+    
+    # factor
+    factor, current_token_index = parse_factor(tokens, current_token_index)
+    expression = factor
+
+    while current_token_index < len(tokens) and (tokens[current_token_index].m_type == TokenType.PLUS or tokens[current_token_index].m_type == TokenType.MINUS):
+        current_token = tokens[current_token_index]
+        current_token_index += 1
+        match current_token.m_type:
+            # PLUS
+            case TokenType.PLUS:
+                # factor
+                factor, current_token_index = parse_factor(tokens, current_token_index)
+                expression = [current_token, [expression, factor]]
+            # MINUS
+            case TokenType.MINUS:
+                # factor
+                factor, current_token_index = parse_factor(tokens, current_token_index)
+                expression = [current_token, [expression, factor]]
+            case _:
+                raise Exception("parse_expression", "Unexpected token:", tokens[current_token_index])
+
+    return expression, current_token_index
+
+# factor        ::= INTEGER
 def parse_factor(tokens, current_token_index):
     factor = []
+    # INTEGER
     current_token = tokens[current_token_index]
+    current_token_index += 1
     match current_token.m_type:
         case TokenType.INTEGER:
-            # INTEGER
-            factor.append(int(current_token.m_value))
-            current_token_index += 1
+            factor = current_token
         case _:
             raise Exception("parse_factor", "Unexpected token:", tokens[current_token_index])
 
@@ -124,20 +163,34 @@ def parse_factor(tokens, current_token_index):
 
 def interpret(tree):
     result = ''
-    for node in tree:
-        if isinstance(node, list):
-            node, children = node[0], node[1] 
-        if node == PRINT:
-            print(interpret(children))
-        else:
-            result = node
+    node = tree
+    if isinstance(node, list):
+        left = node[0]
+        right = node[1]
+    else:
+        left = node
+        right = None
+    # PRINT
+    if left.m_value == PRINT:
+        print(interpret(right))
+    # PLUS
+    elif left.m_value == PLUS:
+        result = int(interpret(right[0])) + int(interpret(right[1]))
+    # MINUS
+    elif left.m_value == MINUS:
+        result = int(interpret(right[0])) - int(interpret(right[1]))
+    # NUMBER
+    elif left.m_value.isdigit():
+        return left.m_value
+    else:
+        raise Exception("interpret", "Unexpected node:", node)
 
     return result
 
 # **** main ****
 
 source = """
-print 42
+print 40 + 2
 """
 
 tokens = tokenize(source)
@@ -147,4 +200,4 @@ tree = parse(tokens)
 # print(tree)
 # print_tree(tree)
 
-interpret(tree)
+interpret(tree[0])
