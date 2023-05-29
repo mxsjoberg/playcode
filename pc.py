@@ -74,7 +74,7 @@ def tokenize(source):
                 tokens.append(Token(TokenType.PLUS, PLUS))
                 current_char_index += 1
             case '-':
-                # comment
+                # comments
                 next_char = source[current_char_index + 1]
                 if next_char == '-' or next_char == '>':
                     current_char_index += 1
@@ -95,7 +95,7 @@ def tokenize(source):
                 tokens.append(Token(TokenType.LPAR, LPAR))
                 current_char_index += 1
             case ')':
-                tokens.append(Token(TokenType.LPAR, RPAR))
+                tokens.append(Token(TokenType.RPAR, RPAR))
                 current_char_index += 1
             case _:
                 if current_char.isdigit():
@@ -131,27 +131,24 @@ def parse(tokens):
 
     return tree
 
-# program       ::= PRINT expression
+# program ::= PRINT expression
 def parse_program(tokens, current_token_index):
     program = []
     current_token = tokens[current_token_index]
     current_token_index += 1
-    match current_token.m_type:
-        case TokenType.KEYWORD:
-            # PRINT
-            if current_token.m_value == PRINT:
-                program.append(current_token)
-                # expression
-                expression, current_token_index = parse_expression(tokens, current_token_index)
-                program.append(expression)
-            else:
-                raise Exception("parse_program", "Unexpected token:", tokens[current_token_index])
-        case _:
-            raise Exception("parse_program", "Unexpected token:", tokens[current_token_index])
+    
+    # PRINT
+    if current_token.m_value == PRINT:
+        program.append(current_token)
+        # expression
+        expression, current_token_index = parse_expression(tokens, current_token_index)
+        program.append(expression)
+    else:
+        raise Exception("parse_program", "Unexpected token:", tokens[current_token_index])
 
     return program, current_token_index
 
-# expression    ::= term ((PLUS | MINUS) term)*
+# expression ::= term ((PLUS | MINUS) term)*
 def parse_expression(tokens, current_token_index):
     expression = []
     
@@ -178,7 +175,7 @@ def parse_expression(tokens, current_token_index):
 
     return expression, current_token_index
 
-# term          ::= factor ((MULTIPLY | DIVIDE) factor)*
+# term ::= factor ((MULTIPLY | DIVIDE) factor)*
 def parse_term(tokens, current_token_index):
     term = []
     
@@ -205,11 +202,12 @@ def parse_term(tokens, current_token_index):
 
     return term, current_token_index
 
-# factor        ::= INTEGER | LPAR expression RPAR
+# factor ::= INTEGER | LPAR expression RPAR
 def parse_factor(tokens, current_token_index):
     factor = []
     current_token = tokens[current_token_index]
     current_token_index += 1
+    
     match current_token.m_type:
         # INTEGER
         case TokenType.INTEGER:
@@ -220,7 +218,10 @@ def parse_factor(tokens, current_token_index):
             expression, current_token_index = parse_expression(tokens, current_token_index)
             factor = expression
             # RPAR
-            current_token_index += 1
+            if current_token_index < len(tokens) and tokens[current_token_index].m_type == TokenType.RPAR:
+                current_token_index += 1
+            else:
+                raise Exception("parse_factor", "Expecting ')':")
         case _:
             raise Exception("parse_factor", "Unexpected token:", tokens[current_token_index])
 
@@ -267,10 +268,10 @@ print 1 + (2 * 4) - (6 / 2) -> 6
 """
 
 tokens = tokenize(source)
-for token in tokens: print(token)
+# for token in tokens: print(token)
 
 tree = parse(tokens)
 # print(tree)
-# print_tree(tree)
+print_tree(tree)
 
 interpret(tree[0])
