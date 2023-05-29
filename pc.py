@@ -4,6 +4,11 @@ import sys
 from enum import Enum
 # print("Using Python", sys.version.split()[0])
 
+# program       ::= PRINT expression
+# expression    ::= term ((PLUS | MINUS) term)*
+# term          ::= factor ((MULTIPLY | DIVIDE) factor)*
+# factor        ::= INTEGER | LPAR expression RPAR
+
 # tokens
 PRINT       = "PRINT"
 INTEGER     = "INTEGER"
@@ -29,14 +34,14 @@ def print_tree(tree, indent_level=-2):
 # **** token ****
 
 class TokenType(Enum):
-    KEYWORD     = 1
-    INTEGER     = 2
-    PLUS        = 3
-    MINUS       = 4
-    MULTIPLY    = 5
-    DIVIDE      = 6
-    LPAR        = 7
-    RPAR        = 8
+    KEYWORD     = 100
+    INTEGER     = 201
+    PLUS        = 301
+    MINUS       = 302
+    MULTIPLY    = 304
+    DIVIDE      = 305
+    LPAR        = 401
+    RPAR        = 402
 
 class Token(object):
     def __init__(self, m_type, m_value):
