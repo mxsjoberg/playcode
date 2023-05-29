@@ -238,26 +238,25 @@ def interpret(tree):
     else:
         left = node
         right = None
-    # PRINT
-    if left.m_value == PRINT:
-        print(interpret(right))
-    # PLUS
-    elif left.m_value == PLUS:
-        result = int(interpret(right[0])) + int(interpret(right[1]))
-    # MINUS
-    elif left.m_value == MINUS:
-        result = int(interpret(right[0])) - int(interpret(right[1]))
-    # MULTIPLY
-    elif left.m_value == MULTIPLY:
-        result = int(interpret(right[0])) * int(interpret(right[1]))
-    # DIVIDE
-    elif left.m_value == DIVIDE:
-        result = int(interpret(right[0])) / int(interpret(right[1]))
-    # NUMBER
-    elif left.m_value.isdigit():
-        return left.m_value
-    else:
-        raise Exception("interpret", "Unexpected node:", node)
+
+    match left.m_type:
+        case TokenType.KEYWORD:
+            if left.m_value == PRINT:
+                print(interpret(right))
+        case TokenType.PLUS:
+            result = int(interpret(right[0])) + int(interpret(right[1]))
+        case TokenType.MINUS:
+            result = int(interpret(right[0])) - int(interpret(right[1]))
+        case TokenType.MULTIPLY:
+            result = int(interpret(right[0])) * int(interpret(right[1]))
+        case TokenType.DIVIDE:
+            result = int(interpret(right[0])) / int(interpret(right[1]))
+        case _:
+            # NUMBER
+            if left.m_value.isdigit():
+                return left.m_value
+            else:
+                raise Exception("interpret", "Unexpected node:", node)
 
     return result
 
