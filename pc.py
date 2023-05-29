@@ -8,8 +8,12 @@ from enum import Enum
 # tokens
 PRINT       = "PRINT"
 INTEGER     = "INTEGER"
-PLUS        = "PLUS"
-MINUS       = "MINUS"
+PLUS        = "+"
+MINUS       = "-"
+MULTIPLY    = "*"
+DIVIDE      = "/"
+LPAR        = "("
+RPAR        = ")"
 
 RESERVED = [
     "PRINT"
@@ -30,6 +34,10 @@ class TokenType(Enum):
     INTEGER     = 2
     PLUS        = 3
     MINUS       = 4
+    MULTIPLY    = 5
+    DIVIDE      = 6
+    LPAR        = 7
+    RPAR        = 8
 
 class Token(object):
     def __init__(self, m_type, m_value):
@@ -63,6 +71,18 @@ def tokenize(source):
                 current_char_index += 1
             case '-':
                 tokens.append(Token(TokenType.MINUS, MINUS))
+                current_char_index += 1
+            case '*':
+                tokens.append(Token(TokenType.MULTIPLY, MULTIPLY))
+                current_char_index += 1
+            case '/':
+                tokens.append(Token(TokenType.DIVIDE, DIVIDE))
+                current_char_index += 1
+            case '(':
+                tokens.append(Token(TokenType.LPAR, LPAR))
+                current_char_index += 1
+            case ')':
+                tokens.append(Token(TokenType.LPAR, RPAR))
                 current_char_index += 1
             case _:
                 if current_char.isdigit():
@@ -118,13 +138,13 @@ def parse_program(tokens, current_token_index):
 
     return program, current_token_index
 
-# expression    ::= factor ((PLUS | MINUS) factor)*
+# expression    ::= term ((PLUS | MINUS) term)*
 def parse_expression(tokens, current_token_index):
     expression = []
     
-    # factor
-    factor, current_token_index = parse_factor(tokens, current_token_index)
-    expression = factor
+    # term
+    term, current_token_index = parse_term(tokens, current_token_index)
+    expression = term
 
     while current_token_index < len(tokens) and (tokens[current_token_index].m_type == TokenType.PLUS or tokens[current_token_index].m_type == TokenType.MINUS):
         current_token = tokens[current_token_index]
@@ -132,28 +152,62 @@ def parse_expression(tokens, current_token_index):
         match current_token.m_type:
             # PLUS
             case TokenType.PLUS:
-                # factor
-                factor, current_token_index = parse_factor(tokens, current_token_index)
-                expression = [current_token, [expression, factor]]
+                # term
+                term, current_token_index = parse_term(tokens, current_token_index)
+                expression = [current_token, [expression, term]]
             # MINUS
             case TokenType.MINUS:
-                # factor
-                factor, current_token_index = parse_factor(tokens, current_token_index)
-                expression = [current_token, [expression, factor]]
+                # term
+                term, current_token_index = parse_term(tokens, current_token_index)
+                expression = [current_token, [expression, term]]
             case _:
                 raise Exception("parse_expression", "Unexpected token:", tokens[current_token_index])
 
     return expression, current_token_index
 
-# factor        ::= INTEGER
+# term          ::= factor ((MULTIPLY | DIVIDE) factor)*
+def parse_term(tokens, current_token_index):
+    term = []
+    
+    # factor
+    factor, current_token_index = parse_factor(tokens, current_token_index)
+    term = factor
+
+    while current_token_index < len(tokens) and (tokens[current_token_index].m_type == TokenType.MULTIPLY or tokens[current_token_index].m_type == TokenType.DIVIDE):
+        current_token = tokens[current_token_index]
+        current_token_index += 1
+        match current_token.m_type:
+            # MULTIPLY
+            case TokenType.MULTIPLY:
+                # factor
+                factor, current_token_index = parse_factor(tokens, current_token_index)
+                term = [current_token, [term, factor]]
+            # DIVIDE
+            case TokenType.DIVIDE:
+                # factor
+                factor, current_token_index = parse_factor(tokens, current_token_index)
+                term = [current_token, [term, factor]]
+            case _:
+                raise Exception("parse_term", "Unexpected token:", tokens[current_token_index])
+
+    return term, current_token_index
+
+# factor        ::= INTEGER | LPAR expression RPAR
 def parse_factor(tokens, current_token_index):
     factor = []
-    # INTEGER
     current_token = tokens[current_token_index]
     current_token_index += 1
     match current_token.m_type:
+        # INTEGER
         case TokenType.INTEGER:
             factor = current_token
+        # LPAR
+        case TokenType.LPAR:
+            # expression
+            expression, current_token_index = parse_expression(tokens, current_token_index)
+            factor = expression
+            # RPAR
+            current_token_index += 1
         case _:
             raise Exception("parse_factor", "Unexpected token:", tokens[current_token_index])
 
@@ -179,6 +233,12 @@ def interpret(tree):
     # MINUS
     elif left.m_value == MINUS:
         result = int(interpret(right[0])) - int(interpret(right[1]))
+    # MULTIPLY
+    elif left.m_value == MULTIPLY:
+        result = int(interpret(right[0])) * int(interpret(right[1]))
+    # DIVIDE
+    elif left.m_value == DIVIDE:
+        result = int(interpret(right[0])) / int(interpret(right[1]))
     # NUMBER
     elif left.m_value.isdigit():
         return left.m_value
@@ -190,7 +250,7 @@ def interpret(tree):
 # **** main ****
 
 source = """
-print 40 + 2
+print 1 + (2 * 4) - (6 / 2)
 """
 
 tokens = tokenize(source)
