@@ -1,70 +1,14 @@
 # playcode: a playful programming language
 
-## TODO
+PlayCode is procedural because knowing-how is more important than knowing-that, i.e. [street smarts](https://en.wikipedia.org/wiki/Procedural_knowledge). It will most likely be dynamically typed because no one have time for types anyway. There will be numbers, strings, lists, if-statements, for-loops, variables, and comments. There will probably also be a lot of things that are not yet decided.
 
-- [ ] delete `pc.cpp` -> rename `fpc.cpp` to `pc.cpp`
+Additionally, and more importantly, there will be two main features that will make PlayCode exciting:
 
-## grammar
+- Tags `@<tag>` and goto tag `goto @<tag>` to enable any statement to become a function, so that basically every line can be called from anywhere in the program and return itself once. Imagine playing an instrument where each key or string can be played at any moment and always return some sound.
 
-    program                 ::= (TAG)? statement+
+- Swaps `swap <a> <b>` to swap the values of two variables, which is useful for example when sorting.
 
-    statement               ::= if_statement | assignment_statement | swap_statement | goto_statement | print_statement
-
-        if_statement            ::= IF condition COLON statement+ (ELSE statement_list)? END
-
-        assignment_statement    ::= ID INCREMENT | ID DECREMENT | ID ASSIGN expression
-
-        swap_statement          ::= SWAP ID ID
-
-        goto_statement          ::= GOTO TAG
-
-        print_statement         ::= PRINT expression
-
-    condition               ::= (TRUE | FALSE) | expression ((LT | GT | LE | GE | EQ | NEQ) expression)?
-
-    expression              ::= term ((PLUS | MINUS) term)*
-
-    term                    ::= factor ((MUL | DIV) factor)*
-
-    factor                  ::= PLUS factor | MINUS factor | INTEGER | STRING | ID | LPAR expression RPAR
-
-## tokens
-    
-    IF          -> "if"
-    ELSE        -> "else"
-    END         -> "end"
-    SWAP        -> "swap"
-    GOTO        -> "goto"
-    PRINT       -> "print"
-    INCREMENT   -> "++"
-    DECREMENT   -> "--"
-    ASSIGN      -> "="
-    COLON       -> ":"
-    PLUS        -> "+"
-    MINUS       -> "-"
-    MUL         -> "*"
-    DIV         -> "/"
-    LPAR        -> "("
-    RPAR        -> ")"
-    LT          -> "<"
-    GT          -> ">"
-    LE          -> "<="
-    GE          -> ">="
-    EQ          -> "=="
-    NEQ         -> "!="
-
-    TAG         -> @[a-zA-Z_][a-zA-Z0-9_]*
-    ID          -> [a-zA-Z_][a-zA-Z0-9_]*
-    INTEGER     -> [0-9]+
-    TRUE        -> "true"
-    FALSE       -> "false"
-    STRING      -> ".*"
-
-Swap keyword swaps the values of two variables.
-
-A tag, such as `@my_tag` is used to mark a statement with a tag (similar to functions). Tags can be used to jump to a statement.
-
-### example valid programs
+Below are examples of valid programs.
 
 ```
 print 42
@@ -72,7 +16,7 @@ print 42
 
 ```
 x = 42
-# comment
+-- comment
 if x < 0:
     print false
 else
@@ -81,23 +25,19 @@ end
 ```
 
 ```
-# swap
+-- swap
 x = 2
 y = 3
 swap x y
-print y == 2 # true
+print y == 2 -> true
 ```
 
 ```
-# repeat
+-- tags
 x = 0
 @inc x++
 goto @inc
-print x # 2
+print x -> 2
 ```
 
-## issues
-
-- [ ] `goto` jumps to the first statement with the given tag, how to deal with multiple same tags (make unique?)
-- [ ] `goto` jumps repeat only statement after tag, or everything after tag in program? (if everything, perhaps add keyword `once` to avoid endless repetition)
-
+There are two ways to include comments, `--` and `->`, which also can be used as helpers in source for more readable code.
