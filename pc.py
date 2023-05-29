@@ -272,6 +272,6 @@ tokens = tokenize(source)
 
 tree = parse(tokens)
 # print(tree)
-print_tree(tree)
+# print_tree(tree)
 
 interpret(tree)
