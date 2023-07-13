@@ -4,7 +4,8 @@ import sys
 from enum import Enum
 # print("Using Python", sys.version.split()[0])
 
-# program       ::= PRINT expression
+# program       ::= assignment | PRINT expression
+# assignment    ::= IDENTIFIER EQUALS expression
 # expression    ::= term ((PLUS | MINUS) term)*
 # term          ::= factor ((MULTIPLY | DIVIDE) factor)*
 # factor        ::= INTEGER | LPAR expression RPAR
@@ -18,6 +19,7 @@ MULTIPLY    = "*"
 DIVIDE      = "/"
 LPAR        = "("
 RPAR        = ")"
+EQUALS      = "="
 
 RESERVED = [
     "PRINT"
@@ -122,18 +124,21 @@ def tokenize(source):
 
 def parse(tokens):
     tree = []
+    ast = {}
     current_token = None
     current_token_index = 0
 
     while current_token_index < len(tokens):
         program, current_token_index = parse_program(tokens, current_token_index)
         tree = program
+        ast = program
 
-    return tree
+    return tree, ast
 
-# program ::= PRINT expression
+# program ::= assignment | PRINT expression
 def parse_program(tokens, current_token_index):
     program = []
+    program_dict = {}
     current_token = tokens[current_token_index]
     current_token_index += 1
     
@@ -143,6 +148,7 @@ def parse_program(tokens, current_token_index):
         # expression
         expression, current_token_index = parse_expression(tokens, current_token_index)
         program.append(expression)
+        
     else:
         raise Exception("parse_program", "Unexpected token:", tokens[current_token_index])
 
@@ -268,8 +274,8 @@ print 1 + (2 * 4) - (6 / 2) -> 6
 tokens = tokenize(source)
 # for token in tokens: print(token)
 
-tree = parse(tokens)
+tree, ast = parse(tokens)
 # print(tree)
-# print_tree(tree)
+print_tree(tree)
 
 interpret(tree)
