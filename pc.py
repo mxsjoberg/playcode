@@ -37,6 +37,7 @@ def print_tree(tree, indent_level=-1):
 
 class TokenType(Enum):
     KEYWORD     = 100
+    IDENTIFIER  = 200
     INTEGER     = 201
     PLUS        = 301
     MINUS       = 302
@@ -44,6 +45,7 @@ class TokenType(Enum):
     DIVIDE      = 305
     LPAR        = 401
     RPAR        = 402
+    EQUALS      = 501
 
 class Token(object):
     def __init__(self, m_type, m_value):
@@ -99,6 +101,9 @@ def tokenize(source):
             case ')':
                 tokens.append(Token(TokenType.RPAR, RPAR))
                 current_char_index += 1
+            case '=':
+                tokens.append(Token(TokenType.EQUALS, EQUALS))
+                current_char_index += 1
             case _:
                 if current_char.isdigit():
                     number = str(current_char)
@@ -113,8 +118,12 @@ def tokenize(source):
                     while source[current_char_index].isalpha() and current_char_index < len(source):
                         identifier += str(source[current_char_index])
                         current_char_index += 1
+                    # reserved
                     if identifier.upper() in RESERVED:
                         tokens.append(Token(TokenType.KEYWORD, identifier.upper()))
+                    # variable
+                    else:
+                        tokens.append(Token(TokenType.IDENTIFIER, identifier.lower()))
                 else:
                     raise Exception("Unknown character:", current_char)
 
