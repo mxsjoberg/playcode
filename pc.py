@@ -4,7 +4,7 @@ import sys
 from enum import Enum
 # print("Using Python", sys.version.split()[0])
 
-# program       ::= assignment | PRINT expression
+# program       ::= assignment | SWAP IDENTIFIER IDENTIFIER | PRINT expression
 # assignment    ::= IDENTIFIER EQUALS expression
 # expression    ::= term ((PLUS | MINUS) term)*
 # term          ::= factor ((MULTIPLY | DIVIDE) factor)*
@@ -12,6 +12,7 @@ from enum import Enum
 
 # tokens
 PRINT       = "PRINT"
+SWAP        = "SWAP" # PART 2
 INTEGER     = "INTEGER"
 PLUS        = "+"
 MINUS       = "-"
@@ -22,7 +23,10 @@ RPAR        = ")"
 EQUALS      = "=" # PART 2
 
 RESERVED = [
-    "PRINT"
+    "PRINT",
+    # PART 2 START
+    "SWAP"
+    # PART 2 END
 ]
 
 def print_tree(tree, indent_level=-2):
@@ -158,7 +162,7 @@ def parse(tokens):
 
     return tree
 
-# program ::= assignment | PRINT expression
+# program ::= assignment | SWAP IDENTIFIER IDENTIFIER | PRINT expression
 def parse_program(tokens, current_token_index):
     program = []
     program_dict = {}
