@@ -19,7 +19,7 @@ MULTIPLY    = "*"
 DIVIDE      = "/"
 LPAR        = "("
 RPAR        = ")"
-EQUALS      = "="
+EQUALS      = "=" # PART 2
 
 RESERVED = [
     "PRINT"
@@ -37,7 +37,7 @@ def print_tree(tree, indent_level=-1):
 
 class TokenType(Enum):
     KEYWORD     = 100
-    IDENTIFIER  = 200
+    IDENTIFIER  = 200 # PART 2
     INTEGER     = 201
     PLUS        = 301
     MINUS       = 302
@@ -45,7 +45,7 @@ class TokenType(Enum):
     DIVIDE      = 305
     LPAR        = 401
     RPAR        = 402
-    EQUALS      = 501
+    EQUALS      = 501 # PART 2
 
 class Token(object):
     def __init__(self, m_type, m_value):
@@ -59,6 +59,10 @@ class Token(object):
             return f"Token({self.m_type})"
 
 # **** lexer ****
+
+# PART 2 START
+symbol_table = {}
+# PART 2 END
 
 def tokenize(source):
     tokens = []
@@ -101,9 +105,11 @@ def tokenize(source):
             case ')':
                 tokens.append(Token(TokenType.RPAR, RPAR))
                 current_char_index += 1
+            # PART 2 START
             case '=':
                 tokens.append(Token(TokenType.EQUALS, EQUALS))
                 current_char_index += 1
+            # PART 2 END
             case _:
                 if current_char.isdigit():
                     number = str(current_char)
@@ -121,9 +127,12 @@ def tokenize(source):
                     # reserved
                     if identifier.upper() in RESERVED:
                         tokens.append(Token(TokenType.KEYWORD, identifier.upper()))
+                    # PART 2 START
                     # variable
                     else:
+                        symbol_table[identifier.lower()] = None
                         tokens.append(Token(TokenType.IDENTIFIER, identifier.lower()))
+                    # PART 2 END
                 else:
                     raise Exception("Unknown character:", current_char)
 
