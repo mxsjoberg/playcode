@@ -175,6 +175,8 @@ def parse_program(tokens, current_token_index):
         program.append(Token(TokenType.ASSIGN))
         assignment, current_token_index = parse_assignment(tokens, current_token_index, identifier=current_token)
         program.append(assignment)
+    elif current_token.m_value == SWAP:
+        # TODO
     # PART 2 END
     # PRINT
     elif current_token.m_value == PRINT:
