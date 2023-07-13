@@ -8,7 +8,7 @@ from enum import Enum
 # assignment    ::= IDENTIFIER EQUALS expression
 # expression    ::= term ((PLUS | MINUS) term)*
 # term          ::= factor ((MULTIPLY | DIVIDE) factor)*
-# factor        ::= INTEGER | LPAR expression RPAR
+# factor        ::= IDENTIFIER | INTEGER | LPAR expression RPAR
 
 # tokens
 PRINT       = "PRINT"
@@ -258,13 +258,18 @@ def parse_term(tokens, current_token_index):
 
     return term, current_token_index
 
-# factor ::= INTEGER | LPAR expression RPAR
+# factor ::= IDENTIFIER | INTEGER | LPAR expression RPAR
 def parse_factor(tokens, current_token_index):
     factor = []
     current_token = tokens[current_token_index]
     current_token_index += 1
     
     match current_token.m_type:
+        # PART 2 START
+        # IDENTIFIER
+        case TokenType.IDENTIFIER:
+            factor = symbol_table[current_token.m_value]
+        # PART 2 END
         # INTEGER
         case TokenType.INTEGER:
             factor = current_token
@@ -294,12 +299,7 @@ def interpret(tree):
     else:
         left = node
         right = None
-    # left = node
-    # right = None
-    # while isinstance(left, list):
-    #     left, right = left[0], left[1]
 
-    # print(left)
     match left.m_type:
         case TokenType.KEYWORD if left.m_value == PRINT:
             print(interpret(right))
@@ -327,7 +327,8 @@ def interpret(tree):
 
 source = """
 x = 2
-print 1 + (2 * 4) - (6 / 2) -> 6
+y = 4
+print 1 + (x * y) - (6 / x) -> 6
 """
 
 tokens = tokenize(source)
@@ -335,9 +336,9 @@ tokens = tokenize(source)
 
 tree = parse(tokens)
 # print(tree)
-# print_tree(tree)
+print_tree(tree)
 
-print(symbol_table)
+# print(symbol_table)
 
 for branch in tree:
     interpret(branch)
