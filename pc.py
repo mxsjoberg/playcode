@@ -294,8 +294,12 @@ def interpret(tree):
     else:
         left = node
         right = None
+    # left = node
+    # right = None
+    # while isinstance(left, list):
+    #     left, right = left[0], left[1]
 
-    print(left)
+    # print(left)
     match left.m_type:
         case TokenType.KEYWORD if left.m_value == PRINT:
             print(interpret(right))
@@ -307,13 +311,15 @@ def interpret(tree):
             result = int(interpret(right[0])) * int(interpret(right[1]))
         case TokenType.DIVIDE:
             result = int(interpret(right[0])) / int(interpret(right[1]))
-        case _:
-            # NUMBER
+        # PART 2 START
+        case TokenType.INTEGER:
             if left.m_value.isdigit():
                 return left.m_value
             else:
-                # raise Exception("interpret", "Unexpected node:", node)
-                pass
+                raise Exception("interpret", "Unexpected node:", node)
+        case _:
+            pass
+        # PART 2 END
 
     return result
 
@@ -329,8 +335,9 @@ tokens = tokenize(source)
 
 tree = parse(tokens)
 # print(tree)
-print_tree(tree)
+# print_tree(tree)
 
 print(symbol_table)
 
-interpret(tree)
+for branch in tree:
+    interpret(branch)
