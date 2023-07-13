@@ -25,7 +25,7 @@ RESERVED = [
     "PRINT"
 ]
 
-def print_tree(tree, indent_level=-1):
+def print_tree(tree, indent_level=-2):
     if isinstance(tree, list):
         for item in tree:
             print_tree(item, indent_level + 1)
@@ -37,6 +37,7 @@ def print_tree(tree, indent_level=-1):
 
 class TokenType(Enum):
     KEYWORD     = 100
+    ASSIGN      = 101 # PART 2
     IDENTIFIER  = 200 # PART 2
     INTEGER     = 201
     PLUS        = 301
@@ -48,7 +49,7 @@ class TokenType(Enum):
     EQUALS      = 501 # PART 2
 
 class Token(object):
-    def __init__(self, m_type, m_value):
+    def __init__(self, m_type, m_value=None):
         self.m_type = m_type
         self.m_value = m_value
 
@@ -142,16 +143,20 @@ def tokenize(source):
 
 def parse(tokens):
     tree = []
-    ast = {}
+    # ast = {}
     current_token = None
     current_token_index = 0
 
     while current_token_index < len(tokens):
         program, current_token_index = parse_program(tokens, current_token_index)
-        tree = program
-        ast = program
+        # tree = program
+        # ast = program
+        tree.append(program)
+    # program, current_token_index = parse_program(tokens, current_token_index)
+    # tree = program
+    # ast = program
 
-    return tree, ast
+    return tree
 
 # program ::= assignment | PRINT expression
 def parse_program(tokens, current_token_index):
@@ -159,18 +164,45 @@ def parse_program(tokens, current_token_index):
     program_dict = {}
     current_token = tokens[current_token_index]
     current_token_index += 1
-    
+
+    # PART 2 START
+    # assignment
+    if current_token.m_type == TokenType.IDENTIFIER:
+        program.append(Token(TokenType.ASSIGN))
+        assignment, current_token_index = parse_assignment(tokens, current_token_index, identifier=current_token)
+        program.append(assignment)
+    # PART 2 END
     # PRINT
-    if current_token.m_value == PRINT:
+    elif current_token.m_value == PRINT:
         program.append(current_token)
         # expression
         expression, current_token_index = parse_expression(tokens, current_token_index)
         program.append(expression)
-        
     else:
         raise Exception("parse_program", "Unexpected token:", tokens[current_token_index])
 
     return program, current_token_index
+
+# PART 2 START
+# assignment ::= IDENTIFIER EQUALS expression
+def parse_assignment(tokens, current_token_index, identifier):
+    assignment = []
+    # assignment_dict = {}
+    current_token = tokens[current_token_index]
+    current_token_index += 1
+
+    # EQUALS
+    if current_token.m_type == TokenType.EQUALS:
+        assignment.append(identifier)
+        # expression
+        expression, current_token_index = parse_expression(tokens, current_token_index)
+        assignment.append(expression)
+        symbol_table[identifier.m_value] = expression
+    else:
+        raise Exception("parse_assignment", "Unexpected token:", tokens[current_token_index])
+
+    return assignment, current_token_index
+# PART 2 END
 
 # expression ::= term ((PLUS | MINUS) term)*
 def parse_expression(tokens, current_token_index):
@@ -263,6 +295,7 @@ def interpret(tree):
         left = node
         right = None
 
+    print(left)
     match left.m_type:
         case TokenType.KEYWORD if left.m_value == PRINT:
             print(interpret(right))
@@ -279,21 +312,25 @@ def interpret(tree):
             if left.m_value.isdigit():
                 return left.m_value
             else:
-                raise Exception("interpret", "Unexpected node:", node)
+                # raise Exception("interpret", "Unexpected node:", node)
+                pass
 
     return result
 
 # **** main ****
 
 source = """
+x = 2
 print 1 + (2 * 4) - (6 / 2) -> 6
 """
 
 tokens = tokenize(source)
 # for token in tokens: print(token)
 
-tree, ast = parse(tokens)
+tree = parse(tokens)
 # print(tree)
 print_tree(tree)
+
+print(symbol_table)
 
 interpret(tree)
