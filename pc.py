@@ -4,9 +4,10 @@ import sys
 from enum import Enum
 # print("Using Python", sys.version.split()[0])
 
-# program           ::= assignment | swap_statement | PRINT expression
-# assignment        ::= IDENTIFIER EQUALS expression
+# program           ::= assignment | swap_statement | PRINT comparison
+# assignment        ::= IDENTIFIER EQUAL expression
 # swap_statement    ::= SWAP IDENTIFIER IDENTIFIER
+# comparison        ::= expression ((EQUALS | NOT_EQUALS | LESS_THAN | GREATER_THAN) expression)*
 # expression        ::= term ((PLUS | MINUS) term)*
 # term              ::= factor ((MULTIPLY | DIVIDE) factor)*
 # factor            ::= IDENTIFIER | INTEGER | LPAR expression RPAR
@@ -15,13 +16,18 @@ from enum import Enum
 PRINT       = "PRINT"
 SWAP        = "SWAP"
 INTEGER     = "INTEGER"
+# BOOLEAN     = "BOOLEAN"
 PLUS        = "+"
 MINUS       = "-"
 MULTIPLY    = "*"
 DIVIDE      = "/"
 LPAR        = "("
 RPAR        = ")"
-EQUALS      = "="
+EQUAL       = "="
+EQUALS      = "=="
+NOT_EQUALS  = "!="
+LESS_THAN   = "<"
+GREATER_THAN= ">"
 
 RESERVED = [
     "PRINT",
@@ -37,17 +43,22 @@ def print_tree(tree, indent_level=-2):
         print(f"{indent}{tree}")
 
 class TokenType(Enum):
-    KEYWORD     = 100
-    ASSIGN      = 101
-    IDENTIFIER  = 200
-    INTEGER     = 201
-    PLUS        = 301
-    MINUS       = 302
-    MULTIPLY    = 304
-    DIVIDE      = 305
-    LPAR        = 401
-    RPAR        = 402
-    EQUALS      = 501
+    KEYWORD         = 100
+    ASSIGN          = 101
+    IDENTIFIER      = 200
+    INTEGER         = 201
+    # BOOLEAN         = 202
+    PLUS            = 301
+    MINUS           = 302
+    MULTIPLY        = 304
+    DIVIDE          = 305
+    EQUALS          = 306
+    NOT_EQUALS      = 307
+    LESS_THAN       = 308
+    GREATER_THAN    = 309
+    LPAR            = 401
+    RPAR            = 402
+    EQUAL           = 501
 
 class Token(object):
     def __init__(self, m_type, m_value=None):
@@ -106,7 +117,28 @@ def tokenize(source):
                 tokens.append(Token(TokenType.RPAR, RPAR))
                 current_char_index += 1
             case '=':
-                tokens.append(Token(TokenType.EQUALS, EQUALS))
+                # equals
+                next_char = source[current_char_index + 1]
+                if next_char == '=':
+                    tokens.append(Token(TokenType.EQUALS, EQUALS))
+                    current_char_index += 2
+                # equal
+                else:
+                    tokens.append(Token(TokenType.EQUAL, EQUAL))
+                    current_char_index += 1
+            case '!':
+                # not equals
+                next_char = source[current_char_index + 1]
+                if next_char == '=':
+                    tokens.append(Token(TokenType.NOT_EQUALS, NOT_EQUALS))
+                    current_char_index += 2
+                else:
+                    raise Exception("Unknown character:", current_char)
+            case '<':
+                tokens.append(Token(TokenType.LESS_THAN, LESS_THAN))
+                current_char_index += 1
+            case '>':
+                tokens.append(Token(TokenType.GREATER_THAN, GREATER_THAN))
                 current_char_index += 1
             case _:
                 if current_char.isdigit():
@@ -147,7 +179,7 @@ def parse(tokens):
 
     return tree
 
-# program ::= assignment | swap_statement | PRINT expression
+# program ::= assignment | swap_statement | PRINT comparison
 def parse_program(tokens, current_token_index):
     program = []
     program_dict = {}
@@ -168,21 +200,21 @@ def parse_program(tokens, current_token_index):
     elif current_token.m_value == PRINT:
         program.append(current_token)
         # expression
-        expression, current_token_index = parse_expression(tokens, current_token_index)
+        expression, current_token_index = parse_comparison(tokens, current_token_index)
         program.append(expression)
     else:
         raise Exception("parse_program", "Unexpected token:", tokens[current_token_index])
 
     return program, current_token_index
 
-# assignment ::= IDENTIFIER EQUALS expression
+# assignment ::= IDENTIFIER EQUAL expression
 def parse_assignment(tokens, current_token_index, identifier):
     assignment = []
     current_token = tokens[current_token_index]
     current_token_index += 1
 
-    # EQUALS
-    if current_token.m_type == TokenType.EQUALS:
+    # EQUAL
+    if current_token.m_type == TokenType.EQUAL:
         assignment.append(identifier)
         # expression
         expression, current_token_index = parse_expression(tokens, current_token_index)
@@ -213,6 +245,41 @@ def parse_swap_statement(tokens, current_token_index):
         raise Exception("parse_swap_statement", "Unexpected token:", tokens[current_token_index])
 
     return swap_statement, current_token_index
+
+# comparison ::= expression ((EQUALS | NOT_EQUALS | LESS_THAN | GREATER_THAN) expression)*
+def parse_comparison(tokens, current_token_index):
+    comparison = []
+    
+    # expression
+    expression, current_token_index = parse_expression(tokens, current_token_index)
+    comparison = expression
+
+    while current_token_index < len(tokens) and (tokens[current_token_index].m_type == TokenType.EQUALS or tokens[current_token_index].m_type == TokenType.NOT_EQUALS or tokens[current_token_index].m_type == TokenType.LESS_THAN or tokens[current_token_index].m_type == TokenType.GREATER_THAN):
+        current_token = tokens[current_token_index]
+        current_token_index += 1
+        match current_token.m_type:
+            # EQUALS
+            case TokenType.EQUALS:
+                # expression
+                expression, current_token_index = parse_expression(tokens, current_token_index)
+                comparison = [current_token, [comparison, expression]]
+            # NOT_EQUALS
+            case TokenType.NOT_EQUALS:
+                # expression
+                expression, current_token_index = parse_expression(tokens, current_token_index)
+                comparison = [current_token, [comparison, expression]]
+            # LESS_THAN
+            case TokenType.LESS_THAN:
+                # expression
+                expression, current_token_index = parse_expression(tokens, current_token_index)
+                comparison = [current_token, [comparison, expression]]
+            # GREATER_THAN
+            case TokenType.GREATER_THAN:
+                # expression
+                expression, current_token_index = parse_expression(tokens, current_token_index)
+                comparison = [current_token, [comparison, expression]]
+
+    return comparison, current_token_index
 
 # expression ::= term ((PLUS | MINUS) term)*
 def parse_expression(tokens, current_token_index):
@@ -332,6 +399,18 @@ def interpret(tree):
         # DIVIDE
         case TokenType.DIVIDE:
             result = int(interpret(right[0])) / int(interpret(right[1]))
+        # EQUALS
+        case TokenType.EQUALS:
+            result = int(interpret(right[0])) == int(interpret(right[1]))
+        # NOT_EQUALS
+        case TokenType.NOT_EQUALS:
+            result = int(interpret(right[0])) != int(interpret(right[1]))
+        # LESS_THAN
+        case TokenType.LESS_THAN:
+            result = int(interpret(right[0])) < int(interpret(right[1]))
+        # GREATER_THAN
+        case TokenType.GREATER_THAN:
+            result = int(interpret(right[0])) > int(interpret(right[1]))
         # INTEGER
         case TokenType.INTEGER:
             return left.m_value
@@ -342,13 +421,17 @@ def interpret(tree):
 
 # **** main ****
 
+# source = """
+# x = 2 * 2
+# y = 2
+# -- swap
+# swap x y
+# -- print
+# print 1 + (x * y) - (6 / x) -> 6
+# """
+
 source = """
-x = 2 * 2
-y = 2
--- swap
-swap x y
--- print
-print 1 + (x * y) - (6 / x) -> 6
+print 4 > 2
 """
 
 tokens = tokenize(source)
@@ -356,7 +439,7 @@ tokens = tokenize(source)
 
 tree = parse(tokens)
 # print(tree)
-# print_tree(tree)
+print_tree(tree)
 
 for branch in tree:
     interpret(branch)
