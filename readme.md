@@ -19,12 +19,14 @@ print 42
 ```
 x = 42
 -- comment
-if x < 0:
+if x < 0 {
     print false
-else
+} else {
     print "positive"
-end
+}
 ```
+
+Brackets `{` and `}` define a block and variables defined inside are only available locally inside the block.
 
 ```
 -- swap
