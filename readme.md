@@ -43,3 +43,49 @@ print x -> 2
 ```
 
 There are two ways to include comments, `--` and `->`, which also can be used as helpers in source for more readable code.
+
+## Current status
+
+Assignments, swaps, print, and expressions working.
+
+```
+x = 2 * 2
+y = 2
+-- swap
+swap x y
+-- print
+print 1 + (x * y) - (6 / x) -> 6
+```
+
+AST:
+
+```
+Token(TokenType.ASSIGN)
+    Token(TokenType.IDENTIFIER, 'x')
+        Token(TokenType.MULTIPLY, '*')
+            Token(TokenType.INTEGER, '2')
+            Token(TokenType.INTEGER, '2')
+Token(TokenType.ASSIGN)
+    Token(TokenType.IDENTIFIER, 'y')
+    Token(TokenType.INTEGER, '2')
+Token(TokenType.KEYWORD, 'SWAP')
+    Token(TokenType.IDENTIFIER, 'x')
+    Token(TokenType.IDENTIFIER, 'y')
+Token(TokenType.KEYWORD, 'PRINT')
+    Token(TokenType.MINUS, '-')
+            Token(TokenType.PLUS, '+')
+                Token(TokenType.INTEGER, '1')
+                    Token(TokenType.MULTIPLY, '*')
+                        Token(TokenType.IDENTIFIER, 'x')
+                        Token(TokenType.IDENTIFIER, 'y')
+            Token(TokenType.DIVIDE, '/')
+                Token(TokenType.INTEGER, '6')
+                Token(TokenType.IDENTIFIER, 'x')
+```
+
+Symbol table:
+
+```
+{'x': Token(TokenType.INTEGER, '2'), 'y': [Token(TokenType.MULTIPLY, '*'), [Token(TokenType.INTEGER, '2'), Token(TokenType.INTEGER, '2')]]}
+```
+
