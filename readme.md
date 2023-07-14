@@ -50,7 +50,7 @@ There are only integers, no such thing as floats or "real" numbers (jk, might ad
 
 ## Current status
 
-Assignments, swaps, print, and expressions working.
+#### Assignments, swaps, print, and expressions working
 
 ```
 x = 2 * 2
@@ -61,39 +61,19 @@ swap x y
 print 1 + (x * y) - (6 / x) -> 6
 ```
 
-AST:
+Output:
 
 ```
-Token(TokenType.ASSIGN)
-    Token(TokenType.IDENTIFIER, 'x')
-        Token(TokenType.MULTIPLY, '*')
-            Token(TokenType.INTEGER, '2')
-            Token(TokenType.INTEGER, '2')
-Token(TokenType.ASSIGN)
-    Token(TokenType.IDENTIFIER, 'y')
-    Token(TokenType.INTEGER, '2')
-Token(TokenType.KEYWORD, 'SWAP')
-    Token(TokenType.IDENTIFIER, 'x')
-    Token(TokenType.IDENTIFIER, 'y')
-Token(TokenType.KEYWORD, 'PRINT')
-    Token(TokenType.MINUS, '-')
-            Token(TokenType.PLUS, '+')
-                Token(TokenType.INTEGER, '1')
-                    Token(TokenType.MULTIPLY, '*')
-                        Token(TokenType.IDENTIFIER, 'x')
-                        Token(TokenType.IDENTIFIER, 'y')
-            Token(TokenType.DIVIDE, '/')
-                Token(TokenType.INTEGER, '6')
-                Token(TokenType.IDENTIFIER, 'x')
+6
 ```
 
 Symbol table:
 
 ```
-{'x': Token(TokenType.INTEGER, '2'), 'y': [Token(TokenType.MULTIPLY, '*'), [Token(TokenType.INTEGER, '2'), Token(TokenType.INTEGER, '2')]]}
+{'x': '2', 'y': 4}
 ```
 
-If statement with condition and booleans working.
+#### If-statement with condition and booleans working
 
 ```
 x = 2
@@ -113,25 +93,33 @@ True
 Symbol table:
 
 ```
-{'x': Token(TokenType.INTEGER, '2')}
+{'x': '2'}
 ```
 
-Tags working.
+#### Tags working
 
 ```
-@print print 42
-@print
+-- tags
+x = 0
+@inc x = x + 1
+@inc
+print x -> 2
 ```
 
 Output:
 
 ```
-42
-42
+2
+```
+
+Symbol table:
+
+```
+{'x': 2}
 ```
 
 Tag table:
 
 ```
-{'print': [Token(TokenType.KEYWORD, 'PRINT'), Token(TokenType.INTEGER, '42')]}
+{'inc': [Token(TokenType.ASSIGN), [Token(TokenType.IDENTIFIER, 'x'), [Token(TokenType.PLUS, '+'), [Token(TokenType.IDENTIFIER, 'x'), Token(TokenType.INTEGER, '1')]]]]}
 ```
