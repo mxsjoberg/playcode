@@ -25,9 +25,7 @@ EQUALS      = "=" # PART 2
 
 RESERVED = [
     "PRINT",
-    # PART 2 START
-    "SWAP"
-    # PART 2 END
+    "SWAP" # PART 2
 ]
 
 def print_tree(tree, indent_level=-2):
