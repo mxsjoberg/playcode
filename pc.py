@@ -201,8 +201,8 @@ def tokenize(source):
                     # identifier
                     else:
                         # symbol_table[identifier.lower()] = { "ssa_index": 0, "values": [] }
-                        if not identifier.lower() in symbol_table:
-                            symbol_table[identifier.lower()] = None
+                        # if not identifier.lower() in symbol_table:
+                        #     symbol_table[identifier.lower()] = None
                         tokens.append(Token(TokenType.IDENTIFIER, identifier.lower()))
                 else:
                     raise Exception("Unknown character:", current_char)
@@ -270,9 +270,11 @@ def parse_assignment(tokens, current_token_index, identifier):
     if current_token.m_type == TokenType.EQUAL:
         assignment.append(identifier)
         # expression
-        expression, current_token_index = parse_expression(tokens, current_token_index, expand=True)
+        expression, current_token_index = parse_expression(tokens, current_token_index)
         assignment.append(expression)
-        symbol_table[identifier.m_value] = expression
+        # symbol_table[identifier.m_value] = expression
+        if not identifier.m_value.lower() in symbol_table:
+            symbol_table[identifier.m_value.lower()] = None
     else:
         raise Exception("parse_assignment", "Unexpected token:", tokens[current_token_index])
 
@@ -398,10 +400,10 @@ def parse_comparison(tokens, current_token_index):
     return comparison, current_token_index
 
 # expression ::= term ((PLUS | MINUS) term)*
-def parse_expression(tokens, current_token_index, expand=False):
+def parse_expression(tokens, current_token_index):
     expression = []
     # term
-    term, current_token_index = parse_term(tokens, current_token_index, expand)
+    term, current_token_index = parse_term(tokens, current_token_index)
     expression = term
 
     while current_token_index < len(tokens) and (tokens[current_token_index].m_type == TokenType.PLUS or tokens[current_token_index].m_type == TokenType.MINUS):
@@ -411,12 +413,12 @@ def parse_expression(tokens, current_token_index, expand=False):
             # PLUS
             case TokenType.PLUS:
                 # term
-                term, current_token_index = parse_term(tokens, current_token_index, expand)
+                term, current_token_index = parse_term(tokens, current_token_index)
                 expression = [current_token, [expression, term]]
             # MINUS
             case TokenType.MINUS:
                 # term
-                term, current_token_index = parse_term(tokens, current_token_index, expand)
+                term, current_token_index = parse_term(tokens, current_token_index)
                 expression = [current_token, [expression, term]]
             case _:
                 raise Exception("parse_expression", "Unexpected token:", tokens[current_token_index])
@@ -424,10 +426,10 @@ def parse_expression(tokens, current_token_index, expand=False):
     return expression, current_token_index
 
 # term ::= factor ((MULTIPLY | DIVIDE) factor)*
-def parse_term(tokens, current_token_index, expand=False):
+def parse_term(tokens, current_token_index):
     term = []
     # factor
-    factor, current_token_index = parse_factor(tokens, current_token_index, expand)
+    factor, current_token_index = parse_factor(tokens, current_token_index)
     term = factor
 
     while current_token_index < len(tokens) and (tokens[current_token_index].m_type == TokenType.MULTIPLY or tokens[current_token_index].m_type == TokenType.DIVIDE):
@@ -437,12 +439,12 @@ def parse_term(tokens, current_token_index, expand=False):
             # MULTIPLY
             case TokenType.MULTIPLY:
                 # factor
-                factor, current_token_index = parse_factor(tokens, current_token_index, expand)
+                factor, current_token_index = parse_factor(tokens, current_token_index)
                 term = [current_token, [term, factor]]
             # DIVIDE
             case TokenType.DIVIDE:
                 # factor
-                factor, current_token_index = parse_factor(tokens, current_token_index, expand)
+                factor, current_token_index = parse_factor(tokens, current_token_index)
                 term = [current_token, [term, factor]]
             case _:
                 raise Exception("parse_term", "Unexpected token:", tokens[current_token_index])
@@ -450,7 +452,7 @@ def parse_term(tokens, current_token_index, expand=False):
     return term, current_token_index
 
 # factor ::= IDENTIFIER | BOOLEAN | INTEGER | LPAR expression RPAR
-def parse_factor(tokens, current_token_index, expand=False):
+def parse_factor(tokens, current_token_index):
     factor = []
     current_token = tokens[current_token_index]
     current_token_index += 1
@@ -458,10 +460,7 @@ def parse_factor(tokens, current_token_index, expand=False):
     match current_token.m_type:
         # IDENTIFIER
         case TokenType.IDENTIFIER:
-            if expand:
-                factor = symbol_table[current_token.m_value]
-            else:
-                factor = current_token
+            factor = current_token
         # BOOLEAN
         case TokenType.BOOLEAN:
             factor = current_token
@@ -471,7 +470,7 @@ def parse_factor(tokens, current_token_index, expand=False):
         # LPAR
         case TokenType.LPAR:
             # expression
-            expression, current_token_index = parse_expression(tokens, current_token_index, expand)
+            expression, current_token_index = parse_expression(tokens, current_token_index)
             factor = expression
             # RPAR
             if current_token_index < len(tokens) and tokens[current_token_index].m_type == TokenType.RPAR:
@@ -496,6 +495,9 @@ def interpret(tree):
         right = None
 
     match left.m_type:
+        # ASSIGN
+        case TokenType.ASSIGN:
+            symbol_table[right[0].m_value] = interpret(right[1])
         # PRINT
         case TokenType.KEYWORD if left.m_value == PRINT:
             print(interpret(right))
@@ -513,7 +515,7 @@ def interpret(tree):
             return interpret(tags_table[left.m_value])
         # identifier
         case TokenType.IDENTIFIER:
-            return interpret(symbol_table[left.m_value])
+            return int(symbol_table[left.m_value])
         # PLUS
         case TokenType.PLUS:
             result = int(interpret(right[0])) + int(interpret(right[1]))
@@ -580,7 +582,8 @@ def interpret(tree):
 source = """
 -- tags
 x = 0
-x = x + 1
+@inc x = x + 1
+@inc
 print x -> 2
 """
 
