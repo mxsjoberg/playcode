@@ -46,6 +46,8 @@ print x -> 2
 
 There are two ways to include comments, `--` and `->`, which also can be used as helpers in source for more readable code.
 
+There are only integers, no such thing as floats or "real" numbers (jk, might add later, but not important right now).
+
 ## Current status
 
 Assignments, swaps, print, and expressions working.
