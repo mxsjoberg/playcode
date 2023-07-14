@@ -39,7 +39,7 @@ print y == 2 -> true
 ```
 -- tags
 x = 0
-@inc x++
+@inc x = x + 1
 goto @inc
 print x -> 2
 ```
