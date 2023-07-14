@@ -11,7 +11,7 @@ from enum import Enum
 # comparison        ::= expression ((EQUALS | NOT_EQUALS | LESS_THAN | GREATER_THAN) expression)*
 # expression        ::= term ((PLUS | MINUS) term)*
 # term              ::= factor ((MULTIPLY | DIVIDE) factor)*
-# factor            ::= IDENTIFIER | INTEGER | LPAR expression RPAR
+# factor            ::= IDENTIFIER | BOOLEAN | INTEGER | LPAR expression RPAR
 
 # tokens
 PRINT       = "PRINT"
@@ -20,6 +20,8 @@ IF          = "IF"
 ELSE        = "ELSE"
 INTEGER     = "INTEGER"
 # BOOLEAN     = "BOOLEAN"
+TRUE        = "TRUE"
+FALSE       = "FALSE"
 PLUS        = "+"
 MINUS       = "-"
 MULTIPLY    = "*"
@@ -38,7 +40,9 @@ RESERVED = [
     "PRINT",
     "SWAP",
     "IF",
-    "ELSE"
+    "ELSE",
+    "TRUE",
+    "FALSE"
 ]
 
 def print_tree(tree, indent_level=-2):
@@ -49,6 +53,8 @@ def print_tree(tree, indent_level=-2):
             else:
                 print_tree(item, indent_level)
     else:
+        if tree.m_type == TokenType.INTEGER or tree.m_type == TokenType.BOOLEAN:
+            indent_level = indent_level + 1
         indent = '\t' * indent_level
         print(f"{indent}{tree}")
 
@@ -58,7 +64,7 @@ class TokenType(Enum):
     EMPTY           = 102
     IDENTIFIER      = 200
     INTEGER         = 201
-    # BOOLEAN         = 202
+    BOOLEAN         = 202
     PLUS            = 301
     MINUS           = 302
     MULTIPLY        = 304
@@ -173,8 +179,11 @@ def tokenize(source):
                     while source[current_char_index].isalpha() and current_char_index < len(source):
                         identifier += str(source[current_char_index])
                         current_char_index += 1
+                    # boolean
+                    if identifier.upper() == "TRUE" or identifier.upper() == "FALSE":
+                        tokens.append(Token(TokenType.BOOLEAN, identifier.upper()))
                     # reserved
-                    if identifier.upper() in RESERVED:
+                    elif identifier.upper() in RESERVED:
                         tokens.append(Token(TokenType.KEYWORD, identifier.upper()))
                     # identifier
                     else:
@@ -273,9 +282,6 @@ def parse_swap_statement(tokens, current_token_index):
 # if_statement ::= IF comparison LBRA program RBRA (ELSE LBRA program RBRA)?
 def parse_if_statement(tokens, current_token_index):
     if_statement = []
-    # current_token = tokens[current_token_index]
-    # current_token_index += 1
-
     # comparison
     comparison, current_token_index = parse_comparison(tokens, current_token_index)
     if_statement.append(comparison)
@@ -284,7 +290,6 @@ def parse_if_statement(tokens, current_token_index):
     current_token = tokens[current_token_index]
     current_token_index += 1
     if current_token.m_type == TokenType.LBRA:
-        # if_statement.append(current_token)
         # program
         program, current_token_index = parse_program(tokens, current_token_index)
         if_statement.append(program)
@@ -292,7 +297,6 @@ def parse_if_statement(tokens, current_token_index):
         current_token = tokens[current_token_index]
         current_token_index += 1
         if current_token.m_type == TokenType.RBRA:
-            # if_statement.append(current_token)
             pass
         else:
             raise Exception("parse_if_statement", "Unexpected token:", tokens[current_token_index])
@@ -303,12 +307,10 @@ def parse_if_statement(tokens, current_token_index):
         # ELSE
         current_token = tokens[current_token_index]
         current_token_index += 1
-        # if_statement.append(current_token)
         # LBRA
         current_token = tokens[current_token_index]
         current_token_index += 1
         if current_token.m_type == TokenType.LBRA:
-            # if_statement.append(current_token)
             # program
             program, current_token_index = parse_program(tokens, current_token_index)
             if_statement.append(program)
@@ -316,7 +318,6 @@ def parse_if_statement(tokens, current_token_index):
             current_token = tokens[current_token_index]
             current_token_index += 1
             if current_token.m_type == TokenType.RBRA:
-                # if_statement.append(current_token)
                 pass
             else:
                 raise Exception("parse_if_statement", "Unexpected token:", tokens[current_token_index])
@@ -330,7 +331,6 @@ def parse_if_statement(tokens, current_token_index):
 # comparison ::= expression ((EQUALS | NOT_EQUALS | LESS_THAN | GREATER_THAN) expression)*
 def parse_comparison(tokens, current_token_index):
     comparison = []
-    
     # expression
     expression, current_token_index = parse_expression(tokens, current_token_index)
     comparison = expression
@@ -365,7 +365,6 @@ def parse_comparison(tokens, current_token_index):
 # expression ::= term ((PLUS | MINUS) term)*
 def parse_expression(tokens, current_token_index):
     expression = []
-    
     # term
     term, current_token_index = parse_term(tokens, current_token_index)
     expression = term
@@ -392,7 +391,6 @@ def parse_expression(tokens, current_token_index):
 # term ::= factor ((MULTIPLY | DIVIDE) factor)*
 def parse_term(tokens, current_token_index):
     term = []
-    
     # factor
     factor, current_token_index = parse_factor(tokens, current_token_index)
     term = factor
@@ -416,7 +414,7 @@ def parse_term(tokens, current_token_index):
 
     return term, current_token_index
 
-# factor ::= IDENTIFIER | INTEGER | LPAR expression RPAR
+# factor ::= IDENTIFIER | BOOLEAN | INTEGER | LPAR expression RPAR
 def parse_factor(tokens, current_token_index):
     factor = []
     current_token = tokens[current_token_index]
@@ -425,6 +423,9 @@ def parse_factor(tokens, current_token_index):
     match current_token.m_type:
         # IDENTIFIER
         case TokenType.IDENTIFIER:
+            factor = current_token
+        # BOOLEAN
+        case TokenType.BOOLEAN:
             factor = current_token
         # INTEGER
         case TokenType.INTEGER:
@@ -499,6 +500,12 @@ def interpret(tree):
         # INTEGER
         case TokenType.INTEGER:
             return left.m_value
+        # BOOLEAN
+        case TokenType.BOOLEAN:
+            if left.m_value == TRUE:
+                return True
+            elif left.m_value == FALSE:
+                return False
         case _:
             pass
 
@@ -516,10 +523,11 @@ def interpret(tree):
 # """
 
 source = """
-if 4 > 2 {
-    print 1
+x = 2
+if x > 0 {
+    print True
 } else {
-    print 0
+    print False
 }
 """
 
@@ -528,9 +536,9 @@ tokens = tokenize(source)
 
 tree = parse(tokens)
 # print(tree)
-print_tree(tree)
+# print_tree(tree)
 
 for branch in tree:
     interpret(branch)
 
-# print(symbol_table)
+print(symbol_table)
