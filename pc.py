@@ -177,6 +177,7 @@ def parse_program(tokens, current_token_index):
         program.append(assignment)
     elif current_token.m_value == SWAP:
         # TODO
+        pass
     # PART 2 END
     # PRINT
     elif current_token.m_value == PRINT:
@@ -274,7 +275,7 @@ def parse_factor(tokens, current_token_index):
         # PART 2 START
         # IDENTIFIER
         case TokenType.IDENTIFIER:
-            factor = symbol_table[current_token.m_value]
+            factor = current_token
         # PART 2 END
         # INTEGER
         case TokenType.INTEGER:
@@ -309,6 +310,8 @@ def interpret(tree):
     match left.m_type:
         case TokenType.KEYWORD if left.m_value == PRINT:
             print(interpret(right))
+        case TokenType.IDENTIFIER:
+            return interpret(symbol_table[left.m_value])
         case TokenType.PLUS:
             result = int(interpret(right[0])) + int(interpret(right[1]))
         case TokenType.MINUS:
@@ -342,9 +345,9 @@ tokens = tokenize(source)
 
 tree = parse(tokens)
 # print(tree)
-# print_tree(tree)
+print_tree(tree)
 
-# print(symbol_table)
+print(symbol_table)
 
 for branch in tree:
     interpret(branch)
