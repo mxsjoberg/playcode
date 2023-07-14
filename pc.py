@@ -343,7 +343,7 @@ def interpret(tree):
 # **** main ****
 
 source = """
-x = 4
+x = 2 * 2
 y = 2
 -- swap
 swap x y
