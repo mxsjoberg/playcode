@@ -556,14 +556,14 @@ def interpret(tree):
 
 # **** main ****
 
-# source = """
-# x = 2 * 2
-# y = 2
-# -- swap
-# swap x y
-# -- print
-# print 1 + (x * y) - (6 / x) -> 6
-# """
+source = """
+x = 2 * 2
+y = 2
+-- swap
+swap x y
+-- print
+print 1 + (x * y) - (6 / x) -> 6
+"""
 
 # source = """
 # x = 2
@@ -575,17 +575,12 @@ def interpret(tree):
 # """
 
 # source = """
-# @print print 42
-# @print
+# -- tags
+# x = 0
+# @inc x = x + 1
+# @inc
+# print x -> 2
 # """
-
-source = """
--- tags
-x = 0
-@inc x = x + 1
-@inc
-print x -> 2
-"""
 
 tokens = tokenize(source)
 # for token in tokens: print(token)
@@ -598,4 +593,4 @@ for branch in tree:
     interpret(branch)
 
 print(symbol_table)
-print(tags_table)
+# print(tags_table)
