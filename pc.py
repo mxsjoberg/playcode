@@ -4,11 +4,12 @@ import sys
 from enum import Enum
 # print("Using Python", sys.version.split()[0])
 
-# program       ::= assignment | SWAP IDENTIFIER IDENTIFIER | PRINT expression
-# assignment    ::= IDENTIFIER EQUALS expression
-# expression    ::= term ((PLUS | MINUS) term)*
-# term          ::= factor ((MULTIPLY | DIVIDE) factor)*
-# factor        ::= IDENTIFIER | INTEGER | LPAR expression RPAR
+# program           ::= assignment | swap_statement | PRINT expression
+# assignment        ::= IDENTIFIER EQUALS expression
+# swap_statement    ::= SWAP IDENTIFIER IDENTIFIER
+# expression        ::= term ((PLUS | MINUS) term)*
+# term              ::= factor ((MULTIPLY | DIVIDE) factor)*
+# factor            ::= IDENTIFIER | INTEGER | LPAR expression RPAR
 
 # tokens
 PRINT       = "PRINT"
@@ -162,7 +163,7 @@ def parse(tokens):
 
     return tree
 
-# program ::= assignment | SWAP IDENTIFIER IDENTIFIER | PRINT expression
+# program ::= assignment | swap_statement | PRINT expression
 def parse_program(tokens, current_token_index):
     program = []
     program_dict = {}
@@ -175,9 +176,11 @@ def parse_program(tokens, current_token_index):
         program.append(Token(TokenType.ASSIGN))
         assignment, current_token_index = parse_assignment(tokens, current_token_index, identifier=current_token)
         program.append(assignment)
+    # swap_statement
     elif current_token.m_value == SWAP:
-        # TODO
-        pass
+        program.append(current_token)
+        swap_statement, current_token_index = parse_swap_statement(tokens, current_token_index)
+        program.append(swap_statement)
     # PART 2 END
     # PRINT
     elif current_token.m_value == PRINT:
@@ -209,6 +212,29 @@ def parse_assignment(tokens, current_token_index, identifier):
         raise Exception("parse_assignment", "Unexpected token:", tokens[current_token_index])
 
     return assignment, current_token_index
+
+# swap_statement ::= SWAP IDENTIFIER IDENTIFIER
+def parse_swap_statement(tokens, current_token_index):
+    swap_statement = []
+    # swap_statement_dict = {}
+    current_token = tokens[current_token_index]
+    current_token_index += 1
+
+    # IDENTIFIER
+    if current_token.m_type == TokenType.IDENTIFIER:
+        swap_statement.append(current_token)
+        # IDENTIFIER
+        current_token = tokens[current_token_index]
+        current_token_index += 1
+        if current_token.m_type == TokenType.IDENTIFIER:
+            swap_statement.append(current_token)
+        else:
+            raise Exception("parse_swap_statement", "Unexpected token:", tokens[current_token_index])
+    else:
+        raise Exception("parse_swap_statement", "Unexpected token:", tokens[current_token_index])
+
+    return swap_statement, current_token_index
+
 # PART 2 END
 
 # expression ::= term ((PLUS | MINUS) term)*
@@ -310,8 +336,12 @@ def interpret(tree):
     match left.m_type:
         case TokenType.KEYWORD if left.m_value == PRINT:
             print(interpret(right))
+        # PART 2 START
+        case TokenType.KEYWORD if left.m_value == SWAP:
+            symbol_table[right[0].m_value], symbol_table[right[1].m_value] = symbol_table[right[1].m_value], symbol_table[right[0].m_value]
         case TokenType.IDENTIFIER:
             return interpret(symbol_table[left.m_value])
+        # PART 2 END
         case TokenType.PLUS:
             result = int(interpret(right[0])) + int(interpret(right[1]))
         case TokenType.MINUS:
@@ -322,10 +352,11 @@ def interpret(tree):
             result = int(interpret(right[0])) / int(interpret(right[1]))
         # PART 2 START
         case TokenType.INTEGER:
-            if left.m_value.isdigit():
-                return left.m_value
-            else:
-                raise Exception("interpret", "Unexpected node:", node)
+            # if left.m_value.isdigit():
+            #     return left.m_value
+            # else:
+            #     raise Exception("interpret", "Unexpected node:", node)
+            return left.m_value
         case _:
             pass
         # PART 2 END
@@ -335,8 +366,11 @@ def interpret(tree):
 # **** main ****
 
 source = """
-x = 2
-y = 4
+x = 4
+y = 2
+-- swap
+swap x y
+-- print
 print 1 + (x * y) - (6 / x) -> 6
 """
 
@@ -347,7 +381,7 @@ tree = parse(tokens)
 # print(tree)
 print_tree(tree)
 
-print(symbol_table)
-
 for branch in tree:
     interpret(branch)
+
+print(symbol_table)
