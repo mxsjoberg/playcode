@@ -356,9 +356,9 @@ tokens = tokenize(source)
 
 tree = parse(tokens)
 # print(tree)
-print_tree(tree)
+# print_tree(tree)
 
 for branch in tree:
     interpret(branch)
 
-print(symbol_table)
+# print(symbol_table)
