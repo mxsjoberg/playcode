@@ -116,3 +116,22 @@ Symbol table:
 {'x': Token(TokenType.INTEGER, '2')}
 ```
 
+Tags working.
+
+```
+@print print 42
+@print
+```
+
+Output:
+
+```
+42
+42
+```
+
+Tag table:
+
+```
+{'print': [Token(TokenType.KEYWORD, 'PRINT'), Token(TokenType.INTEGER, '42')]}
+```
