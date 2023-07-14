@@ -6,6 +6,7 @@ from enum import Enum
 
 # program           ::= assignment | swap_statement | if_statement | PRINT comparison
 # assignment        ::= IDENTIFIER EQUAL expression
+# tag_statement     ::= TAG program
 # swap_statement    ::= SWAP IDENTIFIER IDENTIFIER
 # if_statement      ::= IF comparison LBRA program RBRA (ELSE LBRA program RBRA)?
 # comparison        ::= expression ((EQUALS | NOT_EQUALS | LESS_THAN | GREATER_THAN) expression)*
@@ -64,6 +65,7 @@ class TokenType(Enum):
     IDENTIFIER      = 200
     INTEGER         = 201
     BOOLEAN         = 202
+    TAG             = 203
     PLUS            = 301
     MINUS           = 302
     MULTIPLY        = 304
@@ -90,6 +92,8 @@ class Token(object):
             return f"Token({self.m_type})"
 
 symbol_table = {}
+
+tags_table = {}
 
 # **** lexer ****
 
@@ -164,6 +168,16 @@ def tokenize(source):
             case '>':
                 tokens.append(Token(TokenType.GREATER_THAN, GREATER_THAN))
                 current_char_index += 1
+            case '@':
+                identifier = ""
+                current_char_index += 1
+                while source[current_char_index].isalpha() and current_char_index < len(source):
+                    identifier += str(source[current_char_index])
+                    current_char_index += 1
+                tags_table[identifier.lower()] = None
+                tokens.append(Token(TokenType.TAG, identifier.lower()))
+                if source[current_char_index] == '\n':
+                    tokens.append(Token(TokenType.EMPTY))
             case _:
                 if current_char.isdigit():
                     number = str(current_char)
@@ -206,7 +220,7 @@ def parse(tokens):
 
     return tree
 
-# program ::= assignment | swap_statement | if_statement | PRINT comparison
+# program ::= assignment | tag_statement | swap_statement | if_statement | PRINT comparison
 def parse_program(tokens, current_token_index):
     program = []
     program_dict = {}
@@ -218,6 +232,11 @@ def parse_program(tokens, current_token_index):
         program.append(Token(TokenType.ASSIGN))
         assignment, current_token_index = parse_assignment(tokens, current_token_index, identifier=current_token)
         program.append(assignment)
+    # tag_statement
+    elif current_token.m_type == TokenType.TAG:
+        program.append(Token(TokenType.TAG, current_token.m_value))
+        tag_statement, current_token_index = parse_tag_statement(tokens, current_token_index, identifier=current_token)
+        program.append(tag_statement)
     # swap_statement
     elif current_token.m_value == SWAP:
         program.append(current_token)
@@ -256,6 +275,21 @@ def parse_assignment(tokens, current_token_index, identifier):
         raise Exception("parse_assignment", "Unexpected token:", tokens[current_token_index])
 
     return assignment, current_token_index
+
+# tag_statement ::= TAG (EMPTY | program)+
+def parse_tag_statement(tokens, current_token_index, identifier):
+    tag_statement = []
+
+    # EMPTY
+    if tokens[current_token_index].m_type == TokenType.EMPTY:
+        current_token_index += 1
+    # program
+    else:
+        program, current_token_index = parse_program(tokens, current_token_index)
+        tag_statement.append(program)
+        tags_table[identifier.m_value] = program
+
+    return tag_statement, current_token_index
 
 # swap_statement ::= SWAP IDENTIFIER IDENTIFIER
 def parse_swap_statement(tokens, current_token_index):
@@ -469,6 +503,9 @@ def interpret(tree):
                 interpret(right[1])
             else:
                 interpret(right[2])
+        # TAG
+        case TokenType.TAG:
+            return interpret(tags_table[left.m_value])
         # identifier
         case TokenType.IDENTIFIER:
             return interpret(symbol_table[left.m_value])
@@ -521,13 +558,18 @@ def interpret(tree):
 # print 1 + (x * y) - (6 / x) -> 6
 # """
 
+# source = """
+# x = 2
+# if x > 0 {
+#     print True
+# } else {
+#     print False
+# }
+# """
+
 source = """
-x = 2
-if x > 0 {
-    print True
-} else {
-    print False
-}
+@print print 42
+@print
 """
 
 tokens = tokenize(source)
@@ -535,9 +577,10 @@ tokens = tokenize(source)
 
 tree = parse(tokens)
 # print(tree)
-# print_tree(tree)
+print_tree(tree)
 
 for branch in tree:
     interpret(branch)
 
-print(symbol_table)
+# print(symbol_table)
+print(tags_table)
