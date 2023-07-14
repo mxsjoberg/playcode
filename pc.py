@@ -134,7 +134,7 @@ def tokenize(source):
                     if identifier.upper() in RESERVED:
                         tokens.append(Token(TokenType.KEYWORD, identifier.upper()))
                     # PART 2 START
-                    # variable
+                    # identifier
                     else:
                         symbol_table[identifier.lower()] = None
                         tokens.append(Token(TokenType.IDENTIFIER, identifier.lower()))
