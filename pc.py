@@ -13,7 +13,7 @@ from enum import Enum
 
 # tokens
 PRINT       = "PRINT"
-SWAP        = "SWAP" # PART 2
+SWAP        = "SWAP"
 INTEGER     = "INTEGER"
 PLUS        = "+"
 MINUS       = "-"
@@ -21,11 +21,11 @@ MULTIPLY    = "*"
 DIVIDE      = "/"
 LPAR        = "("
 RPAR        = ")"
-EQUALS      = "=" # PART 2
+EQUALS      = "="
 
 RESERVED = [
     "PRINT",
-    "SWAP" # PART 2
+    "SWAP"
 ]
 
 def print_tree(tree, indent_level=-2):
@@ -36,12 +36,10 @@ def print_tree(tree, indent_level=-2):
         indent = '\t' * indent_level
         print(f"{indent}{tree}")
 
-# **** token ****
-
 class TokenType(Enum):
     KEYWORD     = 100
-    ASSIGN      = 101 # PART 2
-    IDENTIFIER  = 200 # PART 2
+    ASSIGN      = 101
+    IDENTIFIER  = 200
     INTEGER     = 201
     PLUS        = 301
     MINUS       = 302
@@ -49,7 +47,7 @@ class TokenType(Enum):
     DIVIDE      = 305
     LPAR        = 401
     RPAR        = 402
-    EQUALS      = 501 # PART 2
+    EQUALS      = 501
 
 class Token(object):
     def __init__(self, m_type, m_value=None):
@@ -62,11 +60,9 @@ class Token(object):
         else:
             return f"Token({self.m_type})"
 
-# **** lexer ****
-
-# PART 2 START
 symbol_table = {}
-# PART 2 END
+
+# **** lexer ****
 
 def tokenize(source):
     tokens = []
@@ -109,11 +105,9 @@ def tokenize(source):
             case ')':
                 tokens.append(Token(TokenType.RPAR, RPAR))
                 current_char_index += 1
-            # PART 2 START
             case '=':
                 tokens.append(Token(TokenType.EQUALS, EQUALS))
                 current_char_index += 1
-            # PART 2 END
             case _:
                 if current_char.isdigit():
                     number = str(current_char)
@@ -131,12 +125,10 @@ def tokenize(source):
                     # reserved
                     if identifier.upper() in RESERVED:
                         tokens.append(Token(TokenType.KEYWORD, identifier.upper()))
-                    # PART 2 START
                     # identifier
                     else:
                         symbol_table[identifier.lower()] = None
                         tokens.append(Token(TokenType.IDENTIFIER, identifier.lower()))
-                    # PART 2 END
                 else:
                     raise Exception("Unknown character:", current_char)
 
@@ -146,18 +138,12 @@ def tokenize(source):
 
 def parse(tokens):
     tree = []
-    # ast = {}
     current_token = None
     current_token_index = 0
 
     while current_token_index < len(tokens):
         program, current_token_index = parse_program(tokens, current_token_index)
-        # tree = program
-        # ast = program
         tree.append(program)
-    # program, current_token_index = parse_program(tokens, current_token_index)
-    # tree = program
-    # ast = program
 
     return tree
 
@@ -168,7 +154,6 @@ def parse_program(tokens, current_token_index):
     current_token = tokens[current_token_index]
     current_token_index += 1
 
-    # PART 2 START
     # assignment
     if current_token.m_type == TokenType.IDENTIFIER:
         program.append(Token(TokenType.ASSIGN))
@@ -179,7 +164,6 @@ def parse_program(tokens, current_token_index):
         program.append(current_token)
         swap_statement, current_token_index = parse_swap_statement(tokens, current_token_index)
         program.append(swap_statement)
-    # PART 2 END
     # PRINT
     elif current_token.m_value == PRINT:
         program.append(current_token)
@@ -191,11 +175,9 @@ def parse_program(tokens, current_token_index):
 
     return program, current_token_index
 
-# PART 2 START
 # assignment ::= IDENTIFIER EQUALS expression
 def parse_assignment(tokens, current_token_index, identifier):
     assignment = []
-    # assignment_dict = {}
     current_token = tokens[current_token_index]
     current_token_index += 1
 
@@ -214,7 +196,6 @@ def parse_assignment(tokens, current_token_index, identifier):
 # swap_statement ::= SWAP IDENTIFIER IDENTIFIER
 def parse_swap_statement(tokens, current_token_index):
     swap_statement = []
-    # swap_statement_dict = {}
     current_token = tokens[current_token_index]
     current_token_index += 1
 
@@ -232,8 +213,6 @@ def parse_swap_statement(tokens, current_token_index):
         raise Exception("parse_swap_statement", "Unexpected token:", tokens[current_token_index])
 
     return swap_statement, current_token_index
-
-# PART 2 END
 
 # expression ::= term ((PLUS | MINUS) term)*
 def parse_expression(tokens, current_token_index):
@@ -332,32 +311,32 @@ def interpret(tree):
         right = None
 
     match left.m_type:
+        # PRINT
         case TokenType.KEYWORD if left.m_value == PRINT:
             print(interpret(right))
-        # PART 2 START
+        # SWAP
         case TokenType.KEYWORD if left.m_value == SWAP:
             symbol_table[right[0].m_value], symbol_table[right[1].m_value] = symbol_table[right[1].m_value], symbol_table[right[0].m_value]
+        # identifier
         case TokenType.IDENTIFIER:
             return interpret(symbol_table[left.m_value])
-        # PART 2 END
+        # PLUS
         case TokenType.PLUS:
             result = int(interpret(right[0])) + int(interpret(right[1]))
+        # MINUS
         case TokenType.MINUS:
             result = int(interpret(right[0])) - int(interpret(right[1]))
+        # MULTIPLY
         case TokenType.MULTIPLY:
             result = int(interpret(right[0])) * int(interpret(right[1]))
+        # DIVIDE
         case TokenType.DIVIDE:
             result = int(interpret(right[0])) / int(interpret(right[1]))
-        # PART 2 START
+        # INTEGER
         case TokenType.INTEGER:
-            # if left.m_value.isdigit():
-            #     return left.m_value
-            # else:
-            #     raise Exception("interpret", "Unexpected node:", node)
             return left.m_value
         case _:
             pass
-        # PART 2 END
 
     return result
 
