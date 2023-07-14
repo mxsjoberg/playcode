@@ -50,7 +50,7 @@ There are only integers, no such thing as floats or "real" numbers (jk, might ad
 
 ## Current status
 
-#### Assignments, swaps, print, and expressions working
+### Assignments, swaps, print, and expressions working
 
 ```
 x = 2 * 2
@@ -73,7 +73,7 @@ Symbol table:
 {'x': '2', 'y': 4}
 ```
 
-#### If-statement with condition and booleans working
+### If-statement with condition and booleans working
 
 ```
 x = 2
@@ -96,7 +96,7 @@ Symbol table:
 {'x': '2'}
 ```
 
-#### Tags working
+### Tags working
 
 ```
 -- tags
