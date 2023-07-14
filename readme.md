@@ -93,3 +93,26 @@ Symbol table:
 {'x': Token(TokenType.INTEGER, '2'), 'y': [Token(TokenType.MULTIPLY, '*'), [Token(TokenType.INTEGER, '2'), Token(TokenType.INTEGER, '2')]]}
 ```
 
+If statement with condition and booleans working.
+
+```
+x = 2
+if x > 0 {
+    print True
+} else {
+    print False
+}
+```
+
+Output:
+
+```
+True
+```
+
+Symbol table:
+
+```
+{'x': Token(TokenType.INTEGER, '2')}
+```
+
