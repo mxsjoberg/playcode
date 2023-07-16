@@ -14,6 +14,8 @@ from enum import Enum
 # expression        ::= term ((PLUS | MINUS) term)*
 # term              ::= factor ((MULTIPLY | DIVIDE) factor)*
 # factor            ::= IDENTIFIER | BOOLEAN | INTEGER | LPAR expression RPAR
+# vector            ::= LSBR (expression (COMMA expression)*)? RSBR
+# index_access      ::= IDENTIFIER LSBR expression RSBR
 
 # tokens
 PRINT       = "PRINT"
@@ -32,11 +34,14 @@ LPAR        = "("
 RPAR        = ")"
 LBRA        = "{"
 RBRA        = "}"
+LSBR        = "["
+RSBR        = "]"
 EQUAL       = "="
 EQUALS      = "=="
 NOT_EQUALS  = "!="
 LESS_THAN   = "<"
 GREATER_THAN= ">"
+COMMA       = ","
 
 RESERVED = [
     "PRINT",
@@ -64,11 +69,13 @@ def print_tree(tree, indent_level=-2):
 class TokenType(Enum):
     KEYWORD         = 100
     ASSIGN          = 101
-    EMPTY           = 102
+    INDEX           = 102
+    EMPTY           = 103
     IDENTIFIER      = 200
     INTEGER         = 201
-    BOOLEAN         = 202
-    TAG             = 203
+    VECTOR          = 202
+    BOOLEAN         = 203
+    TAG             = 204
     PLUS            = 301
     MINUS           = 302
     MULTIPLY        = 304
@@ -81,7 +88,10 @@ class TokenType(Enum):
     RPAR            = 402
     LBRA            = 403
     RBRA            = 404
+    LSBR            = 405
+    RSBR            = 406
     EQUAL           = 501
+    COMMA           = 502
 
 class Token(object):
     def __init__(self, m_type, m_value=None):
@@ -147,6 +157,12 @@ def tokenize(source):
             case '}':
                 tokens.append(Token(TokenType.RBRA, RBRA))
                 current_char_index += 1
+            case '[':
+                tokens.append(Token(TokenType.LSBR, LSBR))
+                current_char_index += 1
+            case ']':
+                tokens.append(Token(TokenType.RSBR, RSBR))
+                current_char_index += 1
             case '=':
                 # equals
                 next_char = source[current_char_index + 1]
@@ -181,6 +197,9 @@ def tokenize(source):
                 tokens.append(Token(TokenType.TAG, identifier.lower()))
                 if source[current_char_index] == '\n':
                     tokens.append(Token(TokenType.EMPTY))
+            case ',':
+                tokens.append(Token(TokenType.COMMA, COMMA))
+                current_char_index += 1
             case _:
                 if current_char.isdigit():
                     number = str(current_char)
@@ -225,10 +244,10 @@ def parse(tokens):
 # program ::= assignment | tag_statement | swap_statement | if_statement | while_statement | PRINT comparison
 def parse_program(tokens, current_token_index):
     program = []
-    program_dict = {}
+    # program_dict = {}
     current_token = tokens[current_token_index]
     current_token_index += 1
-
+    # print(current_token)
     # assignment
     if current_token.m_type == TokenType.IDENTIFIER:
         program.append(Token(TokenType.ASSIGN))
@@ -265,19 +284,22 @@ def parse_program(tokens, current_token_index):
 
     return program, current_token_index
 
-# assignment ::= IDENTIFIER EQUAL expression
+# assignment ::= IDENTIFIER EQUAL (vector | expression)+
 def parse_assignment(tokens, current_token_index, identifier):
     assignment = []
     current_token = tokens[current_token_index]
     current_token_index += 1
-
     # EQUAL
     if current_token.m_type == TokenType.EQUAL:
         assignment.append(identifier)
-        # expression
-        expression, current_token_index = parse_expression(tokens, current_token_index)
-        assignment.append(expression)
-        # symbol_table[identifier.m_value] = expression
+        # vector
+        if tokens[current_token_index].m_type == TokenType.LSBR:
+            vector, current_token_index = parse_vector(tokens, current_token_index)
+            assignment.append(vector)
+        else:
+            # expression
+            expression, current_token_index = parse_expression(tokens, current_token_index)
+            assignment.append(expression)
         if not identifier.m_value.lower() in symbol_table:
             symbol_table[identifier.m_value.lower()] = None
     else:
@@ -300,7 +322,7 @@ def parse_tag_statement(tokens, current_token_index, identifier):
 
     return tag_statement, current_token_index
 
-# swap_statement ::= SWAP IDENTIFIER IDENTIFIER
+# swap_statement ::= SWAP IDENTIFIER (index_access)? IDENTIFIER (index_access)?
 def parse_swap_statement(tokens, current_token_index):
     swap_statement = []
     current_token = tokens[current_token_index]
@@ -308,12 +330,23 @@ def parse_swap_statement(tokens, current_token_index):
 
     # IDENTIFIER
     if current_token.m_type == TokenType.IDENTIFIER:
-        swap_statement.append(current_token)
+        # swap_statement.append(current_token)
+        if current_token_index < len(tokens) and tokens[current_token_index].m_type == TokenType.LSBR:
+            # index_access
+            index_access, current_token_index = parse_index_access(tokens, current_token_index)
+            swap_statement.append([current_token, index_access])
+        else:
+            swap_statement.append(current_token)
         # IDENTIFIER
         current_token = tokens[current_token_index]
         current_token_index += 1
         if current_token.m_type == TokenType.IDENTIFIER:
-            swap_statement.append(current_token)
+            if current_token_index < len(tokens) and tokens[current_token_index].m_type == TokenType.LSBR:
+                # index_access
+                index_access, current_token_index = parse_index_access(tokens, current_token_index)
+                swap_statement.append([current_token, index_access])
+            else:
+                swap_statement.append(current_token)
         else:
             raise Exception("parse_swap_statement", "Unexpected token:", tokens[current_token_index])
     else:
@@ -370,26 +403,29 @@ def parse_if_statement(tokens, current_token_index):
 
     return if_statement, current_token_index
 
-# while_statement ::= WHILE comparison LBRA program RBRA
+# while_statement ::= WHILE comparison LBRA (program)* RBRA
 def parse_while_statement(tokens, current_token_index):
     while_statement = []
     # comparison
     comparison, current_token_index = parse_comparison(tokens, current_token_index)
     while_statement.append(comparison)
+    
     # LBRA
     current_token = tokens[current_token_index]
     current_token_index += 1
     if current_token.m_type == TokenType.LBRA:
-        # program
-        program, current_token_index = parse_program(tokens, current_token_index)
-        while_statement.append(program)
+        # print(tokens[current_token_index])
+        # (program)*
+        while current_token_index < len(tokens) and not tokens[current_token_index].m_value == RBRA:
+            program, current_token_index = parse_program(tokens, current_token_index)
+            while_statement.append(program)
         # RBRA
         current_token = tokens[current_token_index]
         current_token_index += 1
         if current_token.m_type == TokenType.RBRA:
             pass
         else:
-            raise Exception("parse_while_statement", "Unexpected token:", tokens[current_token_index])
+            raise Exception("parse_while_statement", "Unexpected token:", tokens[current_token_index], "Expected:", RBRA)
     else:
         raise Exception("parse_while_statement", "Unexpected token:", tokens[current_token_index])
 
@@ -481,7 +517,7 @@ def parse_term(tokens, current_token_index):
 
     return term, current_token_index
 
-# factor ::= IDENTIFIER | BOOLEAN | INTEGER | LPAR expression RPAR
+# factor ::= IDENTIFIER (index_access)? | BOOLEAN | INTEGER | LPAR expression RPAR
 def parse_factor(tokens, current_token_index):
     factor = []
     current_token = tokens[current_token_index]
@@ -490,7 +526,12 @@ def parse_factor(tokens, current_token_index):
     match current_token.m_type:
         # IDENTIFIER
         case TokenType.IDENTIFIER:
-            factor = current_token
+            if current_token_index < len(tokens) and tokens[current_token_index].m_type == TokenType.LSBR:
+                # index_access
+                index_access, current_token_index = parse_index_access(tokens, current_token_index)
+                factor = [current_token, index_access]
+            else:
+                factor = current_token
         # BOOLEAN
         case TokenType.BOOLEAN:
             factor = current_token
@@ -512,11 +553,64 @@ def parse_factor(tokens, current_token_index):
 
     return factor, current_token_index
 
+# vector ::= LSBR (expression (COMMA expression)*)? RSBR
+def parse_vector(tokens, current_token_index):
+    vector = []
+    current_token = tokens[current_token_index]
+    current_token_index += 1
+    
+    match current_token.m_type:
+        # LSBR
+        case TokenType.LSBR:
+            # (expression (COMMA expression)*)?
+            if current_token_index < len(tokens) and tokens[current_token_index].m_type != TokenType.RSBR:
+                # expression
+                expression, current_token_index = parse_expression(tokens, current_token_index)
+                vector.append(expression)
+                # (COMMA expression)*
+                while current_token_index < len(tokens) and tokens[current_token_index].m_type == TokenType.COMMA:
+                    current_token_index += 1
+                    # expression
+                    expression, current_token_index = parse_expression(tokens, current_token_index)
+                    vector.append(expression)
+            # RSBR
+            if current_token_index < len(tokens) and tokens[current_token_index].m_type == TokenType.RSBR:
+                current_token_index += 1
+            else:
+                raise Exception("parse_vector", "Expecting ']':")
+        case _:
+            raise Exception("parse_vector", "Unexpected token:", tokens[current_token_index])
+
+    return [Token(TokenType.VECTOR), vector], current_token_index
+
+# index_access ::= IDENTIFIER LSBR expression RSBR
+def parse_index_access(tokens, current_token_index):
+    index_access = []
+    current_token = tokens[current_token_index]
+    current_token_index += 1
+    
+    match current_token.m_type:
+        # LSBR
+        case TokenType.LSBR:
+            # expression
+            expression, current_token_index = parse_expression(tokens, current_token_index)
+            index_access.append([Token(TokenType.INDEX), expression])
+            # RSBR
+            if current_token_index < len(tokens) and tokens[current_token_index].m_type == TokenType.RSBR:
+                current_token_index += 1
+            else:
+                raise Exception("parse_index_access", "Expecting ']'")
+        case _:
+            raise Exception("parse_index_access", "Unexpected token:", tokens[current_token_index])
+
+    return index_access, current_token_index
+
 # **** interpreter ****
 
 def interpret(tree):
     result = ''
     node = tree
+    # print(node)
     if isinstance(node, list):
         left = node[0]
         right = node[1]
@@ -524,15 +618,26 @@ def interpret(tree):
         left = node
         right = None
 
+    print(left)
     match left.m_type:
         # ASSIGN
         case TokenType.ASSIGN:
             symbol_table[right[0].m_value] = interpret(right[1])
+        # INDEX
+        case TokenType.INDEX:
+            return symbol_table[left.m_value]["values"][int(interpret(right[0]))]
         # PRINT
         case TokenType.KEYWORD if left.m_value == PRINT:
             print(interpret(right))
         # SWAP
         case TokenType.KEYWORD if left.m_value == SWAP:
+            # if isinstance(symbol_table[right[0].m_value], dict) and symbol_table[right[0].m_value]["type"] == "vector":
+            #     index_0 = interpret(right[0])
+            #     index_1 = interpret(right[1])
+            #     # return symbol_table[left.m_value]["values"][int(index)]
+            #     symbol_table[right[0].m_value]["values"][int(index)], symbol_table[right[1].m_value]["values"][int(index)] = symbol_table[right[1].m_value]["values"][int(index)], symbol_table[right[0].m_value]["values"][int(index)]
+            # else:
+            #     symbol_table[right[0].m_value], symbol_table[right[1].m_value] = symbol_table[right[1].m_value], symbol_table[right[0].m_value]
             symbol_table[right[0].m_value], symbol_table[right[1].m_value] = symbol_table[right[1].m_value], symbol_table[right[0].m_value]
         # IF
         case TokenType.KEYWORD if left.m_value == IF:
@@ -543,13 +648,16 @@ def interpret(tree):
         # WHILE
         case TokenType.KEYWORD if left.m_value == WHILE:
             while interpret(right[0]):
-                interpret(right[1])
+                return interpret(right[1])
         # TAG
         case TokenType.TAG:
             return interpret(tags_table[left.m_value])
         # identifier
         case TokenType.IDENTIFIER:
-            return int(symbol_table[left.m_value])
+            if isinstance(symbol_table[left.m_value], dict) and symbol_table[left.m_value]["type"] == "vector":
+                return interpret(right[0])
+            else:
+                return symbol_table[left.m_value]
         # PLUS
         case TokenType.PLUS:
             result = int(interpret(right[0])) + int(interpret(right[1]))
@@ -577,6 +685,9 @@ def interpret(tree):
         # INTEGER
         case TokenType.INTEGER:
             return left.m_value
+        # VECTOR
+        case TokenType.VECTOR:
+            return { "type": "vector", "values": [int(interpret(element)) for element in right] }
         # BOOLEAN
         case TokenType.BOOLEAN:
             if left.m_value == TRUE:
@@ -616,12 +727,52 @@ def interpret(tree):
 # print x -> 2
 # """
 
+# source = """
+# x = 0
+# while x < 2 {
+#     x = x + 1
+# }
+# print x
+# """
+
+# source = """
+# -- bubble sort
+# x = [5, 3, 8, 4, 2]
+# n = 5
+# i = 0
+# while i < (n - 1) {
+#     j = 0
+#     while j < (n - i - 1) {
+#         if x[j] > x[j + 1] {
+#             swap x[j] x[j + 1]
+#         }
+#         j = j + 1
+#     }
+#     i = i + 1
+# }
+# """
+
+# source = """
+# x = [5, 3, 8, 4, 2]
+# n = 2
+# print x[n + (1 + 1)]
+# """
+
 source = """
-x = 0
-while x < 2 {
-    x = x + 1
+-- bubble sort
+x = [5, 3, 8, 4, 2]
+n = 5
+i = 0
+while i < (n - 1) {
+    j = 0
+    while j < (n - i - 1) {
+        if x[j] > x[j + 1] {
+            swap x[j] x[j + 1]
+        }
+        j = j + 1
+    }
+    i = i + 1
 }
-print x
 """
 
 tokens = tokenize(source)
@@ -631,8 +782,7 @@ tree = parse(tokens)
 # print(tree)
 # print_tree(tree)
 
-for branch in tree:
-    interpret(branch)
+for branch in tree: interpret(branch)
 
 print(symbol_table)
 # print(tags_table)
