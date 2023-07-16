@@ -6,7 +6,7 @@ PlayCode is procedural because knowing-how is more important than knowing-that, 
 
 Additionally, and more importantly, there will be two main features that will make PlayCode exciting:
 
-- Tags `@<tag>` and goto tag `goto @<tag>` to enable any statement to become a function, so that basically every line can be called from anywhere in the program and return itself once. Imagine playing an instrument where each key or string can be played at any moment and always return some sound.
+- Tags `@<tag>` followed by something and goto tag `@<tag>` followed by newline to enable any statement to become a function, so that basically every line can be called from anywhere in the program and return itself once. Imagine playing an instrument where each key or string can be played at any moment and always return some sound.
 
 - Swaps `swap <a> <b>` to swap the values of two variables, which is useful for example when sorting.
 
