@@ -4,11 +4,12 @@ import sys
 from enum import Enum
 # print("Using Python", sys.version.split()[0])
 
-# program           ::= assignment | swap_statement | if_statement | PRINT comparison
+# program           ::= assignment | swap_statement | if_statement | while_statement | PRINT comparison
 # assignment        ::= IDENTIFIER EQUAL expression
 # tag_statement     ::= TAG program
 # swap_statement    ::= SWAP IDENTIFIER IDENTIFIER
 # if_statement      ::= IF comparison LBRA program RBRA (ELSE LBRA program RBRA)?
+# while_statement   ::= WHILE comparison LBRA program RBRA
 # comparison        ::= expression ((EQUALS | NOT_EQUALS | LESS_THAN | GREATER_THAN) expression)*
 # expression        ::= term ((PLUS | MINUS) term)*
 # term              ::= factor ((MULTIPLY | DIVIDE) factor)*
@@ -19,6 +20,7 @@ PRINT       = "PRINT"
 SWAP        = "SWAP"
 IF          = "IF"
 ELSE        = "ELSE"
+WHILE       = "WHILE"
 INTEGER     = "INTEGER"
 TRUE        = "TRUE"
 FALSE       = "FALSE"
@@ -40,6 +42,7 @@ RESERVED = [
     "PRINT",
     "SWAP",
     "IF",
+    "WHILE",
     "ELSE",
     "TRUE",
     "FALSE"
@@ -200,9 +203,6 @@ def tokenize(source):
                         tokens.append(Token(TokenType.KEYWORD, identifier.upper()))
                     # identifier
                     else:
-                        # symbol_table[identifier.lower()] = { "ssa_index": 0, "values": [] }
-                        # if not identifier.lower() in symbol_table:
-                        #     symbol_table[identifier.lower()] = None
                         tokens.append(Token(TokenType.IDENTIFIER, identifier.lower()))
                 else:
                     raise Exception("Unknown character:", current_char)
@@ -222,7 +222,7 @@ def parse(tokens):
 
     return tree
 
-# program ::= assignment | tag_statement | swap_statement | if_statement | PRINT comparison
+# program ::= assignment | tag_statement | swap_statement | if_statement | while_statement | PRINT comparison
 def parse_program(tokens, current_token_index):
     program = []
     program_dict = {}
@@ -249,6 +249,11 @@ def parse_program(tokens, current_token_index):
         program.append(current_token)
         if_statement, current_token_index = parse_if_statement(tokens, current_token_index)
         program.append(if_statement)
+    # while_statement
+    elif current_token.m_value == WHILE:
+        program.append(current_token)
+        while_statement, current_token_index = parse_while_statement(tokens, current_token_index)
+        program.append(while_statement)
     # PRINT
     elif current_token.m_value == PRINT:
         program.append(current_token)
@@ -364,6 +369,31 @@ def parse_if_statement(tokens, current_token_index):
         if_statement.append(Token(TokenType.EMPTY))
 
     return if_statement, current_token_index
+
+# while_statement ::= WHILE comparison LBRA program RBRA
+def parse_while_statement(tokens, current_token_index):
+    while_statement = []
+    # comparison
+    comparison, current_token_index = parse_comparison(tokens, current_token_index)
+    while_statement.append(comparison)
+    # LBRA
+    current_token = tokens[current_token_index]
+    current_token_index += 1
+    if current_token.m_type == TokenType.LBRA:
+        # program
+        program, current_token_index = parse_program(tokens, current_token_index)
+        while_statement.append(program)
+        # RBRA
+        current_token = tokens[current_token_index]
+        current_token_index += 1
+        if current_token.m_type == TokenType.RBRA:
+            pass
+        else:
+            raise Exception("parse_while_statement", "Unexpected token:", tokens[current_token_index])
+    else:
+        raise Exception("parse_while_statement", "Unexpected token:", tokens[current_token_index])
+
+    return while_statement, current_token_index
 
 # comparison ::= expression ((EQUALS | NOT_EQUALS | LESS_THAN | GREATER_THAN) expression)*
 def parse_comparison(tokens, current_token_index):
@@ -510,6 +540,10 @@ def interpret(tree):
                 interpret(right[1])
             else:
                 interpret(right[2])
+        # WHILE
+        case TokenType.KEYWORD if left.m_value == WHILE:
+            while interpret(right[0]):
+                interpret(right[1])
         # TAG
         case TokenType.TAG:
             return interpret(tags_table[left.m_value])
@@ -574,12 +608,20 @@ def interpret(tree):
 # }
 # """
 
+# source = """
+# -- tags
+# x = 0
+# @inc x = x + 1
+# @inc
+# print x -> 2
+# """
+
 source = """
--- tags
 x = 0
-@inc x = x + 1
-@inc
-print x -> 2
+while x < 2 {
+    x = x + 1
+}
+print x
 """
 
 tokens = tokenize(source)
@@ -592,5 +634,5 @@ tree = parse(tokens)
 for branch in tree:
     interpret(branch)
 
-# print(symbol_table)
+print(symbol_table)
 # print(tags_table)
