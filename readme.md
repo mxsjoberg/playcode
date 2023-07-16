@@ -123,3 +123,26 @@ Tag table:
 ```
 {'inc': [Token(TokenType.ASSIGN), [Token(TokenType.IDENTIFIER, 'x'), [Token(TokenType.PLUS, '+'), [Token(TokenType.IDENTIFIER, 'x'), Token(TokenType.INTEGER, '1')]]]]}
 ```
+
+### While-statement working
+
+```
+x = 0
+while x < 2 {
+    x = x + 1
+}
+print x
+```
+
+Output:
+
+```
+2
+```
+
+Symbol table:
+
+```
+{'x': '2'}
+```
+
