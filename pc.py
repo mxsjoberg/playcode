@@ -1,8 +1,23 @@
 #!/usr/local python3.11
 
+import os
 import sys
 from enum import Enum
 # print("Using Python", sys.version.split()[0])
+
+DEBUG = False
+
+COLORS = {
+    'header': '\033[95m',
+    'blue': '\033[94m',
+    'cyan': '\033[96m',
+    'green': '\033[92m',
+    'warning': '\033[93m',
+    'fail': '\033[91m',
+    'end': '\033[0m',
+    'bold': '\033[1m',
+    'underline': '\033[4m',
+}
 
 # program           ::= assignment | swap_statement | if_statement | while_statement | PRINT comparison
 # assignment        ::= IDENTIFIER EQUAL expression
@@ -18,30 +33,30 @@ from enum import Enum
 # index_access      ::= IDENTIFIER LSBR expression RSBR
 
 # tokens
-PRINT       = "PRINT"
-SWAP        = "SWAP"
-IF          = "IF"
-ELSE        = "ELSE"
-WHILE       = "WHILE"
-INTEGER     = "INTEGER"
-TRUE        = "TRUE"
-FALSE       = "FALSE"
-PLUS        = "+"
-MINUS       = "-"
-MULTIPLY    = "*"
-DIVIDE      = "/"
-LPAR        = "("
-RPAR        = ")"
-LBRA        = "{"
-RBRA        = "}"
-LSBR        = "["
-RSBR        = "]"
-EQUAL       = "="
-EQUALS      = "=="
-NOT_EQUALS  = "!="
-LESS_THAN   = "<"
-GREATER_THAN= ">"
-COMMA       = ","
+PRINT           = "PRINT"
+SWAP            = "SWAP"
+IF              = "IF"
+ELSE            = "ELSE"
+WHILE           = "WHILE"
+INTEGER         = "INTEGER"
+TRUE            = "TRUE"
+FALSE           = "FALSE"
+PLUS            = "+"
+MINUS           = "-"
+MULTIPLY        = "*"
+DIVIDE          = "/"
+LPAR            = "("
+RPAR            = ")"
+LBRA            = "{"
+RBRA            = "}"
+LSBR            = "["
+RSBR            = "]"
+EQUAL           = "="
+EQUALS          = "=="
+NOT_EQUALS      = "!="
+LESS_THAN       = "<"
+GREATER_THAN    = ">"
+COMMA           = ","
 
 RESERVED = [
     "PRINT",
@@ -133,7 +148,7 @@ def tokenize(source):
                 if next_char == '-' or next_char == '>':
                     current_char_index += 1
                     # skip until newline
-                    while source[current_char_index] != '\n':
+                    while current_char_index < len(source) and source[current_char_index] != '\n':
                         current_char_index += 1
                 # minus
                 else:
@@ -618,7 +633,7 @@ def interpret(tree):
         left = node
         right = None
 
-    print(left)
+    # print(left)
     match left.m_type:
         # ASSIGN
         case TokenType.ASSIGN:
@@ -758,31 +773,83 @@ def interpret(tree):
 # print x[n + (1 + 1)]
 # """
 
-source = """
--- bubble sort
-x = [5, 3, 8, 4, 2]
-n = 5
-i = 0
-while i < (n - 1) {
-    j = 0
-    while j < (n - i - 1) {
-        if x[j] > x[j + 1] {
-            swap x[j] x[j + 1]
-        }
-        j = j + 1
-    }
-    i = i + 1
-}
-"""
+# source = """
+# -- bubble sort
+# x = [5, 3, 8, 4, 2]
+# n = 5
+# i = 0
+# while i < (n - 1) {
+#     j = 0
+#     while j < (n - i - 1) {
+#         if x[j] > x[j + 1] {
+#             swap x[j] x[j + 1]
+#         }
+#         j = j + 1
+#     }
+#     i = i + 1
+# }
+# """
 
-tokens = tokenize(source)
+# RUN_TESTS = True
+# if RUN_TESTS:
+#     with open("test_swap.pc", "r") as file:
+#         source = file.read()
+#         symbol_table = {}
+#         result = []
+#         tokens = tokenize(source)
+#         tree = parse(tokens)
+#         for branch in tree: result.append(interpret(branch))
+#         assert symbol_table == {'x': '2', 'y': 4}
+
+# symbol_table = {}
+
+# tokens = tokenize(source)
 # for token in tokens: print(token)
 
-tree = parse(tokens)
+# tree = parse(tokens)
 # print(tree)
 # print_tree(tree)
 
-for branch in tree: interpret(branch)
+# for branch in tree: interpret(branch)
 
-print(symbol_table)
+# print(symbol_table)
 # print(tags_table)
+
+if (__name__ == "__main__"):
+    if (len(sys.argv) > 1):
+        file = open(sys.argv[1], "r")
+        source = file.read()
+        # source = """
+        # x = 2 * 2
+        # y = 2
+        # -- swap
+        # swap x y
+        # -- print
+        # print 1 + (x * y) - (6 / x) -> 6
+        # """
+    else:
+        print(f"{COLORS['fail']}No source file provided{COLORS['end']}")
+    # run
+    print(f"{COLORS['header']}Running {COLORS['bold']}PlayCode{COLORS['end']}{COLORS['header']} interpreter{COLORS['end']}")
+    if "--debug" in sys.argv:
+        print(f"{COLORS['warning']}DEBUG{COLORS['end']}")
+        DEBUG = True
+    # symbol_table = {}
+    tokens = tokenize(source)
+    tree = parse(tokens)
+    # print(tree)
+    # print_tree(tree)
+    for branch in tree: interpret(branch)
+    if "--tokens" in sys.argv:
+        for token in tokens: print(f"{COLORS['warning']}{token}{COLORS['end']}")
+    if "--symbols" in sys.argv:
+        print(f"{COLORS['warning']}Symbols: {symbol_table}{COLORS['end']}")
+        print(f"{COLORS['warning']}Tags: {tags_table}{COLORS['end']}")
+    if "--tests" in sys.argv:
+        print(f"{COLORS['cyan']}Running tests{COLORS['end']}")
+        os.system("ls")
+    # close
+    if file: file.close()
+
+
+
