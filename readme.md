@@ -51,3 +51,29 @@ There are only integers, no such thing as floats or "real" numbers (jk, might ad
 
 ![tests.png](tests.png)
 
+### Example: bubble sort in PlayCode
+
+```
+-- bubble sort
+x = [5, 3, 8, 4, 2]
+n = 5
+i = 0
+while i < (n - 1) {
+    j = 0
+    while j < (n - i - 1) {
+        if x[j] > x[j + 1] {
+            swap x[j] x[j + 1]
+        }
+        j = j + 1
+    }
+    i = i + 1
+}
+```
+
+Run with `python3 pc.py test_bubblesort.pc --symbols`
+
+```
+Symbols: {'x': {'type': 'vector', 'values': [2, 3, 4, 5, 8]}, 'n': '5', 'i': 4, 'j': 1}
+Tags: {}
+```
+
