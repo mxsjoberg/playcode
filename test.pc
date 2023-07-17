@@ -6,7 +6,9 @@ while i < (n - 1) {
     j = 0
     while j < (n - i - 1) {
         if x[j] > x[j + 1] {
-            swap x[j] x[j + 1]
+            tmp = x[j]
+            x[j] = x[j + 1]
+            x[j + 1] = tmp
         }
         j = j + 1
     }
