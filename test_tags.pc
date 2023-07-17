@@ -1,0 +1,5 @@
+-- tags
+x = 0
+@inc x = x + 1
+@inc
+print x -> 2
