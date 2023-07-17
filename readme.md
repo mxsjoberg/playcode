@@ -25,8 +25,6 @@ if x > 0 {
 }
 ```
 
-Brackets `{` and `}` define a block and variables defined inside are only available locally inside the block.
-
 ```
 -- swap
 x = 2 * 2
