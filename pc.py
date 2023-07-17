@@ -21,17 +21,16 @@ COLORS = {
 }
 
 # program           ::= assignment | swap_statement | if_statement | while_statement | PRINT comparison
-# assignment        ::= IDENTIFIER EQUAL expression
-# tag_statement     ::= TAG program
-# swap_statement    ::= SWAP IDENTIFIER IDENTIFIER
-# if_statement      ::= IF comparison LBRA program RBRA (ELSE LBRA program RBRA)?
-# while_statement   ::= WHILE comparison LBRA program RBRA
+# assignment        ::= IDENTIFIER (LSBR expression RSBR)? EQUAL (vector | expression)+
+# tag_statement     ::= TAG (EMPTY | program)+
+# swap_statement    ::= SWAP IDENTIFIER (LSBR expression RSBR)? IDENTIFIER (LSBR expression RSBR)?
+# if_statement      ::= IF comparison LBRA (program)* RBRA (ELSE LBRA (program)* RBRA)?
+# while_statement   ::= WHILE comparison LBRA (program)* RBRA
 # comparison        ::= expression ((EQUALS | NOT_EQUALS | LESS_THAN | GREATER_THAN) expression)*
 # expression        ::= term ((PLUS | MINUS) term)*
 # term              ::= factor ((MULTIPLY | DIVIDE) factor)*
-# factor            ::= IDENTIFIER | BOOLEAN | INTEGER | LPAR expression RPAR
+# factor            ::= IDENTIFIER (LSBR expression RSBR)? | BOOLEAN | INTEGER | LPAR expression RPAR
 # vector            ::= LSBR (expression (COMMA expression)*)? RSBR
-# index_access      ::= IDENTIFIER LSBR expression RSBR
 
 # tokens
 PRINT           = "PRINT"
@@ -786,7 +785,6 @@ if (__name__ == "__main__"):
             for branch in tree: interpret(branch)
             try:
                 assert STDOUT[0] == 6
-                # assert symbol_table == {'x': '2', 'y': 4}
                 print(f"{COLORS['green']}Test case: {test} OK{COLORS['end']}")
             except:
                 print(f"{COLORS['fail']}Test case: {test} Failed{COLORS['end']}")
@@ -800,7 +798,6 @@ if (__name__ == "__main__"):
             for branch in tree: interpret(branch)
             try:
                 assert STDOUT[0] == True
-                # assert symbol_table == {'x': '2'}
                 print(f"{COLORS['green']}Test case: {test} OK{COLORS['end']}")
             except:
                 print(f"{COLORS['fail']}Test case: {test} Failed{COLORS['end']}")
@@ -814,8 +811,6 @@ if (__name__ == "__main__"):
             for branch in tree: interpret(branch)
             try:
                 assert STDOUT[0] == 2
-                # assert symbol_table == {'x': 2}
-                # assert tags_table == "{'inc': [Token(TokenType.ASSIGN), [Token(TokenType.IDENTIFIER, 'x'), [Token(TokenType.PLUS, '+'), [Token(TokenType.IDENTIFIER, 'x'), Token(TokenType.INTEGER, '1')]]]]}"
                 print(f"{COLORS['green']}Test case: {test} OK{COLORS['end']}")
             except:
                 print(f"{COLORS['fail']}Test case: {test} Failed{COLORS['end']}")
@@ -841,8 +836,7 @@ if (__name__ == "__main__"):
             tree = parse(tokenize(file.read()))
             for branch in tree: interpret(branch)
             try:
-                # print(symbol_table)
-                # assert symbol_table == "{'x': {'type': 'vector', 'values': [2, 3, 4, 5, 8]}, 'n': '5', 'i': 4, 'j': 1}"
+                assert list(symbol_table["x"]["values"]) == [2, 3, 4, 5, 8]
                 print(f"{COLORS['green']}Test case: {test} OK{COLORS['end']}")
             except:
                 print(f"{COLORS['fail']}Test case: {test} Failed{COLORS['end']}")
