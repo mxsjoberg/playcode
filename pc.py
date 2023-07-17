@@ -5,7 +5,9 @@ import sys
 from enum import Enum
 # print("Using Python", sys.version.split()[0])
 
-DEBUG = False
+STDOUT = []
+DEBUG = True
+RUNNING_TESTS = False
 
 COLORS = {
     'header': '\033[95m',
@@ -643,7 +645,10 @@ def interpret(tree):
             return symbol_table[left.m_value]["values"][int(interpret(right[0]))]
         # PRINT
         case TokenType.KEYWORD if left.m_value == PRINT:
-            print(interpret(right))
+            if RUNNING_TESTS:
+                STDOUT.append(interpret(right))
+            else:
+                print(interpret(right))
         # SWAP
         case TokenType.KEYWORD if left.m_value == SWAP:
             # if isinstance(symbol_table[right[0].m_value], dict) and symbol_table[right[0].m_value]["type"] == "vector":
@@ -717,15 +722,6 @@ def interpret(tree):
 # **** main ****
 
 # source = """
-# x = 2 * 2
-# y = 2
-# -- swap
-# swap x y
-# -- print
-# print 1 + (x * y) - (6 / x) -> 6
-# """
-
-# source = """
 # x = 2
 # if x > 0 {
 #     print True
@@ -767,56 +763,59 @@ def interpret(tree):
 # }
 # """
 
-# source = """
-# x = [5, 3, 8, 4, 2]
-# n = 2
-# print x[n + (1 + 1)]
-# """
-
-# source = """
-# -- bubble sort
-# x = [5, 3, 8, 4, 2]
-# n = 5
-# i = 0
-# while i < (n - 1) {
-#     j = 0
-#     while j < (n - i - 1) {
-#         if x[j] > x[j + 1] {
-#             swap x[j] x[j + 1]
-#         }
-#         j = j + 1
-#     }
-#     i = i + 1
-# }
-# """
-
-# RUN_TESTS = True
-# if RUN_TESTS:
-#     with open("test_swap.pc", "r") as file:
-#         source = file.read()
-#         symbol_table = {}
-#         result = []
-#         tokens = tokenize(source)
-#         tree = parse(tokens)
-#         for branch in tree: result.append(interpret(branch))
-#         assert symbol_table == {'x': '2', 'y': 4}
-
-# symbol_table = {}
-
-# tokens = tokenize(source)
-# for token in tokens: print(token)
-
-# tree = parse(tokens)
-# print(tree)
-# print_tree(tree)
-
-# for branch in tree: interpret(branch)
-
-# print(symbol_table)
-# print(tags_table)
-
 if (__name__ == "__main__"):
-    if (len(sys.argv) > 1):
+    # tests
+    if "--tests" in sys.argv:
+        print(f"{COLORS['cyan']}Running tests{COLORS['end']}")
+        RUNNING_TESTS = True
+        # test_swap.pc
+        test = "test_swap.pc"
+        with open(test, "r") as file:
+            STDOUT = []
+            symbol_table = {}
+            tags_table = {}
+            tree = parse(tokenize(file.read()))
+            for branch in tree: interpret(branch)
+            try:
+                assert STDOUT[0] == 6
+                # assert symbol_table == {'x': '2', 'y': 4}
+                print(f"{COLORS['green']}Test case: {test} OK{COLORS['end']}")
+            except:
+                print(f"{COLORS['fail']}Test case: {test} Failed{COLORS['end']}")
+        # test_if.pc
+        test = "test_if.pc"
+        with open(test, "r") as file:
+            STDOUT = []
+            symbol_table = {}
+            tags_table = {}
+            tree = parse(tokenize(file.read()))
+            for branch in tree: interpret(branch)
+            try:
+                assert STDOUT[0] == True
+                # assert symbol_table == {'x': '2'}
+                print(f"{COLORS['green']}Test case: {test} OK{COLORS['end']}")
+            except:
+                print(f"{COLORS['fail']}Test case: {test} Failed{COLORS['end']}")
+        # test_tags.pc
+        test = "test_tags.pc"
+        with open(test, "r") as file:
+            STDOUT = []
+            symbol_table = {}
+            tags_table = {}
+            tree = parse(tokenize(file.read()))
+            for branch in tree: interpret(branch)
+            try:
+                assert STDOUT[0] == 2
+                # assert symbol_table == {'x': 2}
+                # assert tags_table == "{'inc': [Token(TokenType.ASSIGN), [Token(TokenType.IDENTIFIER, 'x'), [Token(TokenType.PLUS, '+'), [Token(TokenType.IDENTIFIER, 'x'), Token(TokenType.INTEGER, '1')]]]]}"
+                print(f"{COLORS['green']}Test case: {test} OK{COLORS['end']}")
+            except:
+                print(f"{COLORS['fail']}Test case: {test} Failed{COLORS['end']}")
+        RUNNING_TESTS = False
+    # load file
+    elif (len(sys.argv) > 1):
+        # debug
+        if DEBUG: print(f"{COLORS['warning']}DEBUG{COLORS['end']}")
         file = open(sys.argv[1], "r")
         source = file.read()
         # source = """
@@ -827,29 +826,24 @@ if (__name__ == "__main__"):
         # -- print
         # print 1 + (x * y) - (6 / x) -> 6
         # """
+        # run
+        print(f"{COLORS['header']}Running {COLORS['bold']}PlayCode{COLORS['end']}{COLORS['header']} interpreter{COLORS['end']}")
+        # symbol_table = {}
+        tokens = tokenize(source)
+        tree = parse(tokens)
+        # print(tree)
+        # print_tree(tree)
+        for branch in tree: interpret(branch)
+        # options
+        if "--tokens" in sys.argv:
+            for token in tokens: print(f"{COLORS['warning']}{token}{COLORS['end']}")
+        if "--symbols" in sys.argv:
+            print(f"{COLORS['warning']}Symbols: {symbol_table}{COLORS['end']}")
+            print(f"{COLORS['warning']}Tags: {tags_table}{COLORS['end']}")
+        # close
+        if file: file.close()
     else:
         print(f"{COLORS['fail']}No source file provided{COLORS['end']}")
-    # run
-    print(f"{COLORS['header']}Running {COLORS['bold']}PlayCode{COLORS['end']}{COLORS['header']} interpreter{COLORS['end']}")
-    if "--debug" in sys.argv:
-        print(f"{COLORS['warning']}DEBUG{COLORS['end']}")
-        DEBUG = True
-    # symbol_table = {}
-    tokens = tokenize(source)
-    tree = parse(tokens)
-    # print(tree)
-    # print_tree(tree)
-    for branch in tree: interpret(branch)
-    if "--tokens" in sys.argv:
-        for token in tokens: print(f"{COLORS['warning']}{token}{COLORS['end']}")
-    if "--symbols" in sys.argv:
-        print(f"{COLORS['warning']}Symbols: {symbol_table}{COLORS['end']}")
-        print(f"{COLORS['warning']}Tags: {tags_table}{COLORS['end']}")
-    if "--tests" in sys.argv:
-        print(f"{COLORS['cyan']}Running tests{COLORS['end']}")
-        os.system("ls")
-    # close
-    if file: file.close()
 
 
 
