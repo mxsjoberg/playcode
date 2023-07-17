@@ -5,7 +5,6 @@ import sys
 from enum import Enum
 # print("Using Python", sys.version.split()[0])
 
-STDOUT = []
 DEBUG = True
 RUNNING_TESTS = False
 
@@ -207,7 +206,7 @@ def tokenize(source):
             case '@':
                 identifier = ""
                 current_char_index += 1
-                while source[current_char_index].isalpha() and current_char_index < len(source):
+                while current_char_index < len(source) and source[current_char_index].isalpha():
                     identifier += str(source[current_char_index])
                     current_char_index += 1
                 tags_table[identifier.lower()] = None
@@ -221,14 +220,14 @@ def tokenize(source):
                 if current_char.isdigit():
                     number = str(current_char)
                     current_char_index += 1
-                    while source[current_char_index].isdigit() and current_char_index < len(source):
+                    while current_char_index < len(source) and source[current_char_index].isdigit():
                         number += str(source[current_char_index])
                         current_char_index += 1
                     tokens.append(Token(TokenType.INTEGER, number))
                 elif current_char.isalpha():
                     identifier = str(current_char)
                     current_char_index += 1
-                    while source[current_char_index].isalpha() and current_char_index < len(source):
+                    while current_char_index < len(source) and source[current_char_index].isalpha():
                         identifier += str(source[current_char_index])
                         current_char_index += 1
                     # boolean
@@ -668,7 +667,7 @@ def interpret(tree):
         # WHILE
         case TokenType.KEYWORD if left.m_value == WHILE:
             while interpret(right[0]):
-                return interpret(right[1])
+                interpret(right[1])
         # TAG
         case TokenType.TAG:
             return interpret(tags_table[left.m_value])
@@ -742,6 +741,7 @@ if (__name__ == "__main__"):
     # tests
     if "--tests" in sys.argv:
         print(f"{COLORS['cyan']}Running tests{COLORS['end']}")
+        STDOUT = []
         RUNNING_TESTS = True
         # test_swap.pc
         test = "test_swap.pc"
@@ -783,6 +783,19 @@ if (__name__ == "__main__"):
                 assert STDOUT[0] == 2
                 # assert symbol_table == {'x': 2}
                 # assert tags_table == "{'inc': [Token(TokenType.ASSIGN), [Token(TokenType.IDENTIFIER, 'x'), [Token(TokenType.PLUS, '+'), [Token(TokenType.IDENTIFIER, 'x'), Token(TokenType.INTEGER, '1')]]]]}"
+                print(f"{COLORS['green']}Test case: {test} OK{COLORS['end']}")
+            except:
+                print(f"{COLORS['fail']}Test case: {test} Failed{COLORS['end']}")
+        # test_while.pc
+        test = "test_while.pc"
+        with open(test, "r") as file:
+            STDOUT = []
+            symbol_table = {}
+            tags_table = {}
+            tree = parse(tokenize(file.read()))
+            for branch in tree: interpret(branch)
+            try:
+                assert STDOUT[0] == 4
                 print(f"{COLORS['green']}Test case: {test} OK{COLORS['end']}")
             except:
                 print(f"{COLORS['fail']}Test case: {test} Failed{COLORS['end']}")
