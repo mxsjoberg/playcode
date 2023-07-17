@@ -5,7 +5,7 @@ import sys
 from enum import Enum
 # print("Using Python", sys.version.split()[0])
 
-DEBUG = True
+DEBUG = False
 RUNNING_TESTS = False
 
 COLORS = {
@@ -77,9 +77,9 @@ def print_tree(tree, indent_level=-2):
             else:
                 print_tree(item, indent_level)
     else:
-        if tree.m_type == TokenType.INTEGER or tree.m_type == TokenType.BOOLEAN:
-            indent_level = indent_level + 1
-        indent = '\t' * indent_level
+        # if tree.m_type == TokenType.BOOLEAN:
+        #     indent_level = indent_level + 1
+        indent = '  ' * indent_level
         print(f"{indent}{tree}")
 
 class TokenType(Enum):
@@ -121,11 +121,9 @@ class Token(object):
             return f"Token({self.m_type})"
 
 symbol_table = {}
-
 tags_table = {}
 
 # **** lexer ****
-
 def tokenize(source):
     tokens = []
     current_line = 1
@@ -245,7 +243,6 @@ def tokenize(source):
     return tokens
 
 # **** parser ****
-
 def parse(tokens):
     tree = []
     current_token = None
@@ -261,10 +258,8 @@ def parse(tokens):
 def parse_program(tokens, current_token_index):
     if DEBUG: print(f"{COLORS['warning']}parse_program{COLORS['end']}")
     program = []
-    # program_dict = {}
     current_token = tokens[current_token_index]
     current_token_index += 1
-    # print(current_token)
     # assignment
     if current_token.m_type == TokenType.IDENTIFIER:
         program.append(Token(TokenType.ASSIGN))
@@ -301,15 +296,29 @@ def parse_program(tokens, current_token_index):
 
     return program, current_token_index
 
-# assignment ::= IDENTIFIER EQUAL (vector | expression)+
+# assignment ::= IDENTIFIER (LSBR expression RSBR)? EQUAL (vector | expression)+
 def parse_assignment(tokens, current_token_index, identifier):
     if DEBUG: print(f"{COLORS['warning']}parse_assignment{COLORS['end']}")
     assignment = []
     current_token = tokens[current_token_index]
     current_token_index += 1
+    # LSBR
+    if current_token_index < len(tokens) and current_token.m_type == TokenType.LSBR:
+        # expression
+        expression, current_token_index = parse_expression(tokens, current_token_index)
+        assignment.append([identifier, expression])
+        # RSBR
+        current_token = tokens[current_token_index]
+        current_token_index += 1
+        if current_token.m_type == TokenType.RSBR:
+            current_token = tokens[current_token_index]
+            current_token_index += 1
+        else:
+            raise Exception("parse_factor", "Expecting ']':")
+    else:
+        assignment.append(identifier)
     # EQUAL
     if current_token.m_type == TokenType.EQUAL:
-        assignment.append(identifier)
         # vector
         if tokens[current_token_index].m_type == TokenType.LSBR:
             vector, current_token_index = parse_vector(tokens, current_token_index)
@@ -340,7 +349,7 @@ def parse_tag_statement(tokens, current_token_index, identifier):
 
     return tag_statement, current_token_index
 
-# swap_statement ::= SWAP IDENTIFIER (index_access)? IDENTIFIER (index_access)?
+# TODO swap_statement ::= SWAP IDENTIFIER (LSBR expression RSBR)? IDENTIFIER (LSBR expression RSBR)?
 def parse_swap_statement(tokens, current_token_index):
     if DEBUG: print(f"{COLORS['warning']}parse_swap_statement{COLORS['end']}")
     swap_statement = []
@@ -351,7 +360,7 @@ def parse_swap_statement(tokens, current_token_index):
         # swap_statement.append(current_token)
         if current_token_index < len(tokens) and tokens[current_token_index].m_type == TokenType.LSBR:
             # index_access
-            index_access, current_token_index = parse_index_access(tokens, current_token_index)
+            index_access, current_token_index = parse_index_access(tokens, current_token_index, identifier=current_token)
             swap_statement.append([current_token, index_access])
         else:
             swap_statement.append(current_token)
@@ -361,7 +370,7 @@ def parse_swap_statement(tokens, current_token_index):
         if current_token.m_type == TokenType.IDENTIFIER:
             if current_token_index < len(tokens) and tokens[current_token_index].m_type == TokenType.LSBR:
                 # index_access
-                index_access, current_token_index = parse_index_access(tokens, current_token_index)
+                index_access, current_token_index = parse_index_access(tokens, current_token_index, identifier=current_token)
                 swap_statement.append([current_token, index_access])
             else:
                 swap_statement.append(current_token)
@@ -372,7 +381,7 @@ def parse_swap_statement(tokens, current_token_index):
 
     return swap_statement, current_token_index
 
-# if_statement ::= IF comparison LBRA program RBRA (ELSE LBRA program RBRA)?
+# if_statement ::= IF comparison LBRA (program)* RBRA (ELSE LBRA (program)* RBRA)?
 def parse_if_statement(tokens, current_token_index):
     if DEBUG: print(f"{COLORS['warning']}parse_if_statement{COLORS['end']}")
     if_statement = []
@@ -383,9 +392,12 @@ def parse_if_statement(tokens, current_token_index):
     current_token = tokens[current_token_index]
     current_token_index += 1
     if current_token.m_type == TokenType.LBRA:
-        # program
-        program, current_token_index = parse_program(tokens, current_token_index)
-        if_statement.append(program)
+        program_statements_if_condition_true = []
+        # (program)*
+        while current_token_index < len(tokens) and not tokens[current_token_index].m_value == RBRA:
+            program, current_token_index = parse_program(tokens, current_token_index)
+            program_statements_if_condition_true.append(program)
+        if_statement.append(program_statements_if_condition_true)
         # RBRA
         current_token = tokens[current_token_index]
         current_token_index += 1
@@ -395,7 +407,7 @@ def parse_if_statement(tokens, current_token_index):
             raise Exception("parse_if_statement", "Unexpected token:", tokens[current_token_index])
     else:
         raise Exception("parse_if_statement", "Unexpected token:", tokens[current_token_index])
-    # (ELSE LBRA program RBRA)?
+    # (ELSE LBRA (program)* RBRA)?
     if current_token_index < len(tokens) and tokens[current_token_index].m_value == ELSE:
         # ELSE
         current_token = tokens[current_token_index]
@@ -404,9 +416,16 @@ def parse_if_statement(tokens, current_token_index):
         current_token = tokens[current_token_index]
         current_token_index += 1
         if current_token.m_type == TokenType.LBRA:
+            program_statements_if_condition_false = []
             # program
-            program, current_token_index = parse_program(tokens, current_token_index)
-            if_statement.append(program)
+            # program, current_token_index = parse_program(tokens, current_token_index)
+            # if_statement.append(program)
+            # (program)*
+            while current_token_index < len(tokens) and not tokens[current_token_index].m_value == RBRA:
+                program, current_token_index = parse_program(tokens, current_token_index)
+                # if_statement.append(program)
+                program_statements_if_condition_false.append(program)
+            if_statement.append(program_statements_if_condition_false)
             # RBRA
             current_token = tokens[current_token_index]
             current_token_index += 1
@@ -432,7 +451,6 @@ def parse_while_statement(tokens, current_token_index):
     current_token = tokens[current_token_index]
     current_token_index += 1
     if current_token.m_type == TokenType.LBRA:
-        # print(tokens[current_token_index])
         # (program)*
         while current_token_index < len(tokens) and not tokens[current_token_index].m_value == RBRA:
             program, current_token_index = parse_program(tokens, current_token_index)
@@ -538,19 +556,30 @@ def parse_term(tokens, current_token_index):
 
     return term, current_token_index
 
-# factor ::= IDENTIFIER (index_access)? | BOOLEAN | INTEGER | LPAR expression RPAR
+# factor ::= IDENTIFIER (LSBR expression RSBR)? | BOOLEAN | INTEGER | LPAR expression RPAR
 def parse_factor(tokens, current_token_index):
     if DEBUG: print(f"{COLORS['warning']}parse_factor{COLORS['end']}")
     factor = []
     current_token = tokens[current_token_index]
     current_token_index += 1
+    # print(current_token)
     match current_token.m_type:
         # IDENTIFIER
         case TokenType.IDENTIFIER:
+            # LSBR
             if current_token_index < len(tokens) and tokens[current_token_index].m_type == TokenType.LSBR:
-                # index_access
-                index_access, current_token_index = parse_index_access(tokens, current_token_index)
-                factor = [current_token, index_access]
+                identifier = current_token
+                current_token_index += 1
+                # expression
+                expression, current_token_index = parse_expression(tokens, current_token_index)
+                factor = [identifier, expression]
+                # RSBR
+                current_token = tokens[current_token_index]
+                current_token_index += 1
+                if current_token.m_type == TokenType.RSBR:
+                    pass
+                else:
+                    raise Exception("parse_factor", "Expecting ']':")
             else:
                 factor = current_token
         # BOOLEAN
@@ -604,30 +633,7 @@ def parse_vector(tokens, current_token_index):
 
     return [Token(TokenType.VECTOR), vector], current_token_index
 
-# index_access ::= IDENTIFIER LSBR expression RSBR
-def parse_index_access(tokens, current_token_index):
-    if DEBUG: print(f"{COLORS['warning']}parse_index_access{COLORS['end']}")
-    index_access = []
-    current_token = tokens[current_token_index]
-    current_token_index += 1
-    match current_token.m_type:
-        # LSBR
-        case TokenType.LSBR:
-            # expression
-            expression, current_token_index = parse_expression(tokens, current_token_index)
-            index_access.append([Token(TokenType.INDEX), expression])
-            # RSBR
-            if current_token_index < len(tokens) and tokens[current_token_index].m_type == TokenType.RSBR:
-                current_token_index += 1
-            else:
-                raise Exception("parse_index_access", "Expecting ']'")
-        case _:
-            raise Exception("parse_index_access", "Unexpected token:", tokens[current_token_index])
-
-    return index_access, current_token_index
-
 # **** interpreter ****
-
 def interpret(tree):
     result = ''
     node = tree
@@ -638,22 +644,30 @@ def interpret(tree):
     else:
         left = node
         right = None
-
     # print(left)
     match left.m_type:
         # ASSIGN
         case TokenType.ASSIGN:
-            symbol_table[right[0].m_value] = interpret(right[1])
-        # INDEX
-        case TokenType.INDEX:
-            return symbol_table[left.m_value]["values"][int(interpret(right[0]))]
+            if isinstance(right[0], list):
+                index = False
+                try:
+                    if isinstance(right[0][1], list):
+                        index = interpret(right[0][1])
+                except:
+                    pass
+                if index:
+                    symbol_table[right[0][0].m_value]["values"][int(index)] = interpret(right[1])
+                else:
+                    symbol_table[right[0][0].m_value]["values"][int(symbol_table[right[0][1].m_value])] = interpret(right[1])
+            else:
+                symbol_table[right[0].m_value] = interpret(right[1])
         # PRINT
         case TokenType.KEYWORD if left.m_value == PRINT:
             if RUNNING_TESTS:
                 STDOUT.append(interpret(right))
             else:
                 print(interpret(right))
-        # SWAP
+        # SWAP TODO: fix this
         case TokenType.KEYWORD if left.m_value == SWAP:
             # if isinstance(symbol_table[right[0].m_value], dict) and symbol_table[right[0].m_value]["type"] == "vector":
             #     index_0 = interpret(right[0])
@@ -666,20 +680,24 @@ def interpret(tree):
         # IF
         case TokenType.KEYWORD if left.m_value == IF:
             if interpret(right[0]):
-                interpret(right[1])
+                for branch in right[1]: interpret(branch)
             else:
-                interpret(right[2])
+                try:
+                    for branch in right[2]: interpret(branch)
+                except:
+                    pass
         # WHILE
         case TokenType.KEYWORD if left.m_value == WHILE:
             while interpret(right[0]):
-                interpret(right[1])
+                for branch in right[1:]:
+                    interpret(branch)
         # TAG
         case TokenType.TAG:
             return interpret(tags_table[left.m_value])
         # identifier
         case TokenType.IDENTIFIER:
-            if isinstance(symbol_table[left.m_value], dict) and symbol_table[left.m_value]["type"] == "vector":
-                return interpret(right[0])
+            if isinstance(symbol_table[left.m_value], dict):
+                return symbol_table[left.m_value]["values"][int(interpret(right))]
             else:
                 return symbol_table[left.m_value]
         # PLUS
@@ -794,14 +812,6 @@ if (__name__ == "__main__"):
         if DEBUG: print(f"{COLORS['warning']}DEBUG{COLORS['end']}")
         file = open(sys.argv[1], "r")
         source = file.read()
-        # source = """
-        # x = 2 * 2
-        # y = 2
-        # -- swap
-        # swap x y
-        # -- print
-        # print 1 + (x * y) - (6 / x) -> 6
-        # """
         # run
         print(f"{COLORS['header']}Running {COLORS['bold']}PlayCode{COLORS['end']}{COLORS['header']} interpreter{COLORS['end']}")
         # symbol_table = {}
@@ -820,6 +830,3 @@ if (__name__ == "__main__"):
         if file: file.close()
     else:
         print(f"{COLORS['fail']}No source file provided{COLORS['end']}")
-
-
-
