@@ -722,31 +722,6 @@ def interpret(tree):
 # **** main ****
 
 # source = """
-# x = 2
-# if x > 0 {
-#     print True
-# } else {
-#     print False
-# }
-# """
-
-# source = """
-# -- tags
-# x = 0
-# @inc x = x + 1
-# @inc
-# print x -> 2
-# """
-
-# source = """
-# x = 0
-# while x < 2 {
-#     x = x + 1
-# }
-# print x
-# """
-
-# source = """
 # -- bubble sort
 # x = [5, 3, 8, 4, 2]
 # n = 5
