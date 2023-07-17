@@ -259,6 +259,7 @@ def parse(tokens):
 
 # program ::= assignment | tag_statement | swap_statement | if_statement | while_statement | PRINT comparison
 def parse_program(tokens, current_token_index):
+    if DEBUG: print(f"{COLORS['warning']}parse_program{COLORS['end']}")
     program = []
     # program_dict = {}
     current_token = tokens[current_token_index]
@@ -302,6 +303,7 @@ def parse_program(tokens, current_token_index):
 
 # assignment ::= IDENTIFIER EQUAL (vector | expression)+
 def parse_assignment(tokens, current_token_index, identifier):
+    if DEBUG: print(f"{COLORS['warning']}parse_assignment{COLORS['end']}")
     assignment = []
     current_token = tokens[current_token_index]
     current_token_index += 1
@@ -325,8 +327,8 @@ def parse_assignment(tokens, current_token_index, identifier):
 
 # tag_statement ::= TAG (EMPTY | program)+
 def parse_tag_statement(tokens, current_token_index, identifier):
+    if DEBUG: print(f"{COLORS['warning']}parse_tag_statement{COLORS['end']}")
     tag_statement = []
-
     # EMPTY
     if tokens[current_token_index].m_type == TokenType.EMPTY:
         current_token_index += 1
@@ -340,10 +342,10 @@ def parse_tag_statement(tokens, current_token_index, identifier):
 
 # swap_statement ::= SWAP IDENTIFIER (index_access)? IDENTIFIER (index_access)?
 def parse_swap_statement(tokens, current_token_index):
+    if DEBUG: print(f"{COLORS['warning']}parse_swap_statement{COLORS['end']}")
     swap_statement = []
     current_token = tokens[current_token_index]
     current_token_index += 1
-
     # IDENTIFIER
     if current_token.m_type == TokenType.IDENTIFIER:
         # swap_statement.append(current_token)
@@ -372,11 +374,11 @@ def parse_swap_statement(tokens, current_token_index):
 
 # if_statement ::= IF comparison LBRA program RBRA (ELSE LBRA program RBRA)?
 def parse_if_statement(tokens, current_token_index):
+    if DEBUG: print(f"{COLORS['warning']}parse_if_statement{COLORS['end']}")
     if_statement = []
     # comparison
     comparison, current_token_index = parse_comparison(tokens, current_token_index)
     if_statement.append(comparison)
-
     # LBRA
     current_token = tokens[current_token_index]
     current_token_index += 1
@@ -421,11 +423,11 @@ def parse_if_statement(tokens, current_token_index):
 
 # while_statement ::= WHILE comparison LBRA (program)* RBRA
 def parse_while_statement(tokens, current_token_index):
+    if DEBUG: print(f"{COLORS['warning']}parse_while_statement{COLORS['end']}")
     while_statement = []
     # comparison
     comparison, current_token_index = parse_comparison(tokens, current_token_index)
     while_statement.append(comparison)
-    
     # LBRA
     current_token = tokens[current_token_index]
     current_token_index += 1
@@ -449,11 +451,12 @@ def parse_while_statement(tokens, current_token_index):
 
 # comparison ::= expression ((EQUALS | NOT_EQUALS | LESS_THAN | GREATER_THAN) expression)*
 def parse_comparison(tokens, current_token_index):
+    if DEBUG: print(f"{COLORS['warning']}parse_comparison{COLORS['end']}")
     comparison = []
     # expression
     expression, current_token_index = parse_expression(tokens, current_token_index)
     comparison = expression
-
+    # ((EQUALS | NOT_EQUALS | LESS_THAN | GREATER_THAN) expression)*
     while current_token_index < len(tokens) and (tokens[current_token_index].m_type == TokenType.EQUALS or tokens[current_token_index].m_type == TokenType.NOT_EQUALS or tokens[current_token_index].m_type == TokenType.LESS_THAN or tokens[current_token_index].m_type == TokenType.GREATER_THAN):
         current_token = tokens[current_token_index]
         current_token_index += 1
@@ -483,11 +486,12 @@ def parse_comparison(tokens, current_token_index):
 
 # expression ::= term ((PLUS | MINUS) term)*
 def parse_expression(tokens, current_token_index):
+    if DEBUG: print(f"{COLORS['warning']}parse_expression{COLORS['end']}")
     expression = []
     # term
     term, current_token_index = parse_term(tokens, current_token_index)
     expression = term
-
+    # ((PLUS | MINUS) term)*
     while current_token_index < len(tokens) and (tokens[current_token_index].m_type == TokenType.PLUS or tokens[current_token_index].m_type == TokenType.MINUS):
         current_token = tokens[current_token_index]
         current_token_index += 1
@@ -509,11 +513,12 @@ def parse_expression(tokens, current_token_index):
 
 # term ::= factor ((MULTIPLY | DIVIDE) factor)*
 def parse_term(tokens, current_token_index):
+    if DEBUG: print(f"{COLORS['warning']}parse_term{COLORS['end']}")
     term = []
     # factor
     factor, current_token_index = parse_factor(tokens, current_token_index)
     term = factor
-
+    # ((MULTIPLY | DIVIDE) factor)*
     while current_token_index < len(tokens) and (tokens[current_token_index].m_type == TokenType.MULTIPLY or tokens[current_token_index].m_type == TokenType.DIVIDE):
         current_token = tokens[current_token_index]
         current_token_index += 1
@@ -535,10 +540,10 @@ def parse_term(tokens, current_token_index):
 
 # factor ::= IDENTIFIER (index_access)? | BOOLEAN | INTEGER | LPAR expression RPAR
 def parse_factor(tokens, current_token_index):
+    if DEBUG: print(f"{COLORS['warning']}parse_factor{COLORS['end']}")
     factor = []
     current_token = tokens[current_token_index]
     current_token_index += 1
-    
     match current_token.m_type:
         # IDENTIFIER
         case TokenType.IDENTIFIER:
@@ -571,10 +576,10 @@ def parse_factor(tokens, current_token_index):
 
 # vector ::= LSBR (expression (COMMA expression)*)? RSBR
 def parse_vector(tokens, current_token_index):
+    if DEBUG: print(f"{COLORS['warning']}parse_vector{COLORS['end']}")
     vector = []
     current_token = tokens[current_token_index]
     current_token_index += 1
-    
     match current_token.m_type:
         # LSBR
         case TokenType.LSBR:
@@ -601,10 +606,10 @@ def parse_vector(tokens, current_token_index):
 
 # index_access ::= IDENTIFIER LSBR expression RSBR
 def parse_index_access(tokens, current_token_index):
+    if DEBUG: print(f"{COLORS['warning']}parse_index_access{COLORS['end']}")
     index_access = []
     current_token = tokens[current_token_index]
     current_token_index += 1
-    
     match current_token.m_type:
         # LSBR
         case TokenType.LSBR:
@@ -719,23 +724,6 @@ def interpret(tree):
     return result
 
 # **** main ****
-
-# source = """
-# -- bubble sort
-# x = [5, 3, 8, 4, 2]
-# n = 5
-# i = 0
-# while i < (n - 1) {
-#     j = 0
-#     while j < (n - i - 1) {
-#         if x[j] > x[j + 1] {
-#             swap x[j] x[j + 1]
-#         }
-#         j = j + 1
-#     }
-#     i = i + 1
-# }
-# """
 
 if (__name__ == "__main__"):
     # tests
