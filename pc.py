@@ -349,7 +349,7 @@ def parse_tag_statement(tokens, current_token_index, identifier):
 
     return tag_statement, current_token_index
 
-# TODO swap_statement ::= SWAP IDENTIFIER (LSBR expression RSBR)? IDENTIFIER (LSBR expression RSBR)?
+# swap_statement ::= SWAP IDENTIFIER (LSBR expression RSBR)? IDENTIFIER (LSBR expression RSBR)?
 def parse_swap_statement(tokens, current_token_index):
     if DEBUG: print(f"{COLORS['warning']}parse_swap_statement{COLORS['end']}")
     swap_statement = []
@@ -357,25 +357,40 @@ def parse_swap_statement(tokens, current_token_index):
     current_token_index += 1
     # IDENTIFIER
     if current_token.m_type == TokenType.IDENTIFIER:
-        # swap_statement.append(current_token)
+        identifier = current_token
+        # LSBR
         if current_token_index < len(tokens) and tokens[current_token_index].m_type == TokenType.LSBR:
-            # index_access
-            index_access, current_token_index = parse_index_access(tokens, current_token_index, identifier=current_token)
-            swap_statement.append([current_token, index_access])
-        else:
-            swap_statement.append(current_token)
-        # IDENTIFIER
-        current_token = tokens[current_token_index]
-        current_token_index += 1
-        if current_token.m_type == TokenType.IDENTIFIER:
-            if current_token_index < len(tokens) and tokens[current_token_index].m_type == TokenType.LSBR:
-                # index_access
-                index_access, current_token_index = parse_index_access(tokens, current_token_index, identifier=current_token)
-                swap_statement.append([current_token, index_access])
+            current_token_index += 1
+            # expression
+            expression, current_token_index = parse_expression(tokens, current_token_index)
+            swap_statement.append([identifier, expression])
+            # RSBR
+            if tokens[current_token_index].m_type == TokenType.RSBR:
+                current_token_index += 1
             else:
-                swap_statement.append(current_token)
+                raise Exception("parse_swap_statement", "Unexpected token:", tokens[current_token_index])
         else:
-            raise Exception("parse_swap_statement", "Unexpected token:", tokens[current_token_index])
+            swap_statement.append(identifier)
+    else:
+        raise Exception("parse_swap_statement", "Unexpected token:", tokens[current_token_index])
+    # IDENTIFIER
+    current_token = tokens[current_token_index]
+    current_token_index += 1
+    if current_token.m_type == TokenType.IDENTIFIER:
+        identifier = current_token
+        # LSBR
+        if current_token_index < len(tokens) and tokens[current_token_index].m_type == TokenType.LSBR:
+            current_token_index += 1
+            # expression
+            expression, current_token_index = parse_expression(tokens, current_token_index)
+            swap_statement.append([identifier, expression])
+            # RSBR
+            if tokens[current_token_index].m_type == TokenType.RSBR:
+                current_token_index += 1
+            else:
+                raise Exception("parse_swap_statement", "Unexpected token:", tokens[current_token_index])
+        else:
+            swap_statement.append(identifier)
     else:
         raise Exception("parse_swap_statement", "Unexpected token:", tokens[current_token_index])
 
@@ -579,7 +594,7 @@ def parse_factor(tokens, current_token_index):
                 if current_token.m_type == TokenType.RSBR:
                     pass
                 else:
-                    raise Exception("parse_factor", "Expecting ']':")
+                    raise Exception("parse_factor", "Expecting ']'")
             else:
                 factor = current_token
         # BOOLEAN
@@ -597,9 +612,9 @@ def parse_factor(tokens, current_token_index):
             if current_token_index < len(tokens) and tokens[current_token_index].m_type == TokenType.RPAR:
                 current_token_index += 1
             else:
-                raise Exception("parse_factor", "Expecting ')':")
+                raise Exception("parse_factor", "Expecting ')'")
         case _:
-            raise Exception("parse_factor", "Unexpected token:", tokens[current_token_index])
+            raise Exception("parse_factor", "Unexpected token:", current_token)
 
     return factor, current_token_index
 
@@ -667,16 +682,28 @@ def interpret(tree):
                 STDOUT.append(interpret(right))
             else:
                 print(interpret(right))
-        # SWAP TODO: fix this
+        # SWAP
         case TokenType.KEYWORD if left.m_value == SWAP:
-            # if isinstance(symbol_table[right[0].m_value], dict) and symbol_table[right[0].m_value]["type"] == "vector":
-            #     index_0 = interpret(right[0])
-            #     index_1 = interpret(right[1])
-            #     # return symbol_table[left.m_value]["values"][int(index)]
-            #     symbol_table[right[0].m_value]["values"][int(index)], symbol_table[right[1].m_value]["values"][int(index)] = symbol_table[right[1].m_value]["values"][int(index)], symbol_table[right[0].m_value]["values"][int(index)]
-            # else:
-            #     symbol_table[right[0].m_value], symbol_table[right[1].m_value] = symbol_table[right[1].m_value], symbol_table[right[0].m_value]
-            symbol_table[right[0].m_value], symbol_table[right[1].m_value] = symbol_table[right[1].m_value], symbol_table[right[0].m_value]
+            index_0 = False
+            index_1 = False
+            if isinstance(right[0], list):
+                try:
+                    index_0 = interpret(right[0][1])
+                except:
+                    pass
+            if isinstance(right[1], list):
+                try:
+                    index_1 = interpret(right[1][1])
+                except:
+                    pass
+            if index_0 and index_1:
+                symbol_table[right[0][0].m_value]["values"][int(index_0)], symbol_table[right[1][0].m_value]["values"][int(index_1)] = symbol_table[right[1][0].m_value]["values"][int(index_1)], symbol_table[right[0][0].m_value]["values"][int(index_0)]
+            elif index_0:
+                symbol_table[right[0][0].m_value]["values"][int(index_0)], symbol_table[right[1].m_value] = symbol_table[right[1].m_value], symbol_table[right[0][0].m_value]["values"][int(index_0)]
+            elif index_1:
+                symbol_table[right[0].m_value], symbol_table[right[1][0].m_value]["values"][int(index_1)] = symbol_table[right[1][0].m_value]["values"][int(index_1)], symbol_table[right[0].m_value]
+            else:
+                symbol_table[right[0].m_value], symbol_table[right[1].m_value] = symbol_table[right[1].m_value], symbol_table[right[0].m_value]
         # IF
         case TokenType.KEYWORD if left.m_value == IF:
             if interpret(right[0]):
@@ -802,6 +829,20 @@ if (__name__ == "__main__"):
             for branch in tree: interpret(branch)
             try:
                 assert STDOUT[0] == 4
+                print(f"{COLORS['green']}Test case: {test} OK{COLORS['end']}")
+            except:
+                print(f"{COLORS['fail']}Test case: {test} Failed{COLORS['end']}")
+        # test_bubblesort.pc
+        test = "test_bubblesort.pc"
+        with open(test, "r") as file:
+            STDOUT = []
+            symbol_table = {}
+            tags_table = {}
+            tree = parse(tokenize(file.read()))
+            for branch in tree: interpret(branch)
+            try:
+                # print(symbol_table)
+                # assert symbol_table == "{'x': {'type': 'vector', 'values': [2, 3, 4, 5, 8]}, 'n': '5', 'i': 4, 'j': 1}"
                 print(f"{COLORS['green']}Test case: {test} OK{COLORS['end']}")
             except:
                 print(f"{COLORS['fail']}Test case: {test} Failed{COLORS['end']}")
