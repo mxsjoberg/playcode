@@ -32,7 +32,6 @@ COLORS = {
 # factor            ::= IDENTIFIER (LSBR expression RSBR)? | BOOLEAN | INTEGER | LPAR expression RPAR
 # vector            ::= LSBR (expression (COMMA expression)*)? RSBR
 
-# tokens
 PRINT           = "PRINT"
 SWAP            = "SWAP"
 IF              = "IF"
@@ -76,8 +75,6 @@ def print_tree(tree, indent_level=-2):
             else:
                 print_tree(item, indent_level)
     else:
-        # if tree.m_type == TokenType.BOOLEAN:
-        #     indent_level = indent_level + 1
         indent = '  ' * indent_level
         print(f"{indent}{tree}")
 
