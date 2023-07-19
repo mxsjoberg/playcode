@@ -1,28 +1,20 @@
 /*
-
+    program         ::= statement+
+    statement       ::= PRINT expression
+    expression      ::= term ((PLUS | MINUS) term)*
+    term            ::= factor ((MUL | DIV) factor)*
+    factor          ::= PLUS factor | MINUS factor | INTEGER | LPAR expression RPAR
 */
 
 /*
-
-program         ::= statement+
-statement       ::= PRINT expression
-expression      ::= term ((PLUS | MINUS) term)*
-term            ::= factor ((MUL | DIV) factor)*
-factor          ::= PLUS factor | MINUS factor | INTEGER | LPAR expression RPAR
-
-*/
-
-/*
-
-PRINT -> "print"
-PLUS -> "+"
-MINUS -> "-"
-MUL -> "*"
-DIV -> "/"
-LPAR -> "("
-RPAR -> ")"
-INTEGER -> [0-9]+
-
+    PRINT -> "print"
+    PLUS -> "+"
+    MINUS -> "-"
+    MUL -> "*"
+    DIV -> "/"
+    LPAR -> "("
+    RPAR -> ")"
+    INTEGER -> [0-9]+
 */
 
 #include <iostream>
@@ -144,6 +136,7 @@ std::vector<Token> tokenize(const std::string& source) {
                         currentCharIndex++;
                     }
                     std::string lexeme = source.substr(start, currentCharIndex - start);
+                    // TODO: do checks on lowercase only (make all lowercase)
                     if (lexeme == "print" || lexeme == "PRINT") {
                         tokens.push_back({TokenType::PRINT, upper(lexeme), currentLine, currentCharIndex - lexeme.size()});
                     } else {
