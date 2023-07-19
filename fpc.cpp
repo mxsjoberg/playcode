@@ -1,5 +1,9 @@
 /*
 
+*/
+
+/*
+
 program         ::= statement+
 statement       ::= PRINT expression
 expression      ::= term ((PLUS | MINUS) term)*
@@ -189,7 +193,7 @@ struct AST {
 // }
 
 void printTree(const AST& node, int level = 0) {
-    std::cout << std::string(level * 2, ' ') << node.token.lexeme << std::endl;
+    std::cout << std::string(level * 2, ' ') << tokenToString(node.token) << std::endl;
     for (const AST& child : node.children) {
         printTree(child, level + 1);
     }
