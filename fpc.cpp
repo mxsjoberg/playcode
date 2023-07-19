@@ -70,10 +70,10 @@ std::string tokenToString(const Token& token) {
     switch (token.type) {
         case TokenType::BOF: return "PROGRAM";
         case TokenType::PRINT: return "PRINT";
-        case TokenType::PLUS: return "\"+\"";
-        case TokenType::MINUS: return "\"-\"";
-        case TokenType::MUL: return "\"*\"";
-        case TokenType::DIV: return "\"/\"";
+        case TokenType::PLUS: return "PLUS(+)";
+        case TokenType::MINUS: return "MINUS(-)";
+        case TokenType::MUL: return "MUL(*)";
+        case TokenType::DIV: return "DIV(/)";
         case TokenType::LPAR: return "EXPR";
         // case TokenType::RPAR: return "\")\"";
         case TokenType::INTEGER: return "INTEGER(" + token.lexeme + ")";
