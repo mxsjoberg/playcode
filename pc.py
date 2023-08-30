@@ -8,18 +8,6 @@ from enum import Enum
 DEBUG = False
 RUNNING_TESTS = False
 
-COLORS = {
-    'header': '\033[95m',
-    'blue': '\033[94m',
-    'cyan': '\033[96m',
-    'green': '\033[92m',
-    'warning': '\033[93m',
-    'fail': '\033[91m',
-    'end': '\033[0m',
-    'bold': '\033[1m',
-    'underline': '\033[4m',
-}
-
 # program           ::= assignment | swap_statement | if_statement | while_statement | PRINT comparison
 # assignment        ::= IDENTIFIER (LSBR expression RSBR)? EQUAL (vector | expression)+
 # tag_statement     ::= TAG (EMPTY | program)+
@@ -767,7 +755,18 @@ def interpret(tree):
 # **** main ****
 
 if (__name__ == "__main__"):
-    # tests
+    COLORS = {
+        'header': '\033[95m',
+        'blue': '\033[94m',
+        'cyan': '\033[96m',
+        'green': '\033[92m',
+        'warning': '\033[93m',
+        'fail': '\033[91m',
+        'end': '\033[0m',
+        'bold': '\033[1m',
+        'underline': '\033[4m',
+    }
+    # tests : python3 pc.py --tests
     if "--tests" in sys.argv:
         print(f"{COLORS['cyan']}Running tests{COLORS['end']}")
         STDOUT = []
