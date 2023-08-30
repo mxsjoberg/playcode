@@ -49,6 +49,10 @@ There are only integers, no such thing as floats or "real" numbers (jk, might ad
 
 ## Current status
 
+```bash
+python3 pc.py --tests
+```
+
 ![tests.png](tests.png)
 
 ### Example: bubble sort in PlayCode
