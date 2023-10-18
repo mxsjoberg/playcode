@@ -1,6 +1,1 @@
-x = 2 * 2
-y = 2
--- swap
-swap x y
--- print
-print 1 + (x * y) - (6 / x) -> 6
+1 + (2 * 3)
