@@ -11,12 +11,10 @@ while_stmt  : "while" comparison "{" (program)* "}"
 
 comparison  : expr (("==" | "!=" | "<" | ">") expr)*
 
-// expr        : term (("+" | "-") term)*
 expr 		: term
 		    | term "+" term -> add
 		    | term "-" term -> sub
 
-// term        : factor (("*" | "/") factor)*
 term        : factor
 			| factor "*" factor -> mul
 			| factor "/" factor -> div
