@@ -1,7 +1,7 @@
 
-program     : ((TAG)? (assign_stmt | swap_stmt | if_stmt | while_stmt | PRINT comparison))*
+program     : ((TAG)? (expr | assign_stmt | swap_stmt | if_stmt | while_stmt | PRINT comparison))*
 
-assign_stmt : IDENTIFIER ("[" expr "]")? "=" (vector | expr)+
+assign_stmt : IDENTIFIER ("[" expr "]")? "=" (vector | expr)
 
 swap_stmt   : "swap" IDENTIFIER ("[" expr "]")? IDENTIFIER ("[" expr "]")?
 
@@ -11,11 +11,20 @@ while_stmt  : "while" comparison "{" (program)* "}"
 
 comparison  : expr (("==" | "!=" | "<" | ">") expr)*
 
-expr        : term (("+" | "-") term)*
+// expr        : term (("+" | "-") term)*
+expr 		: term
+		    | term "+" term -> add
+		    | term "-" term -> sub
 
-term        : factor (("*" | "/") factor)*
+// term        : factor (("*" | "/") factor)*
+term        : factor
+			| factor "*" factor -> mul
+			| factor "/" factor -> div
 
-factor      : IDENTIFIER ("[" expr "]")? | ("true" | "false") | INTEGER | "(" expr ")"
+// factor      : IDENTIFIER ("[" expr "]")? | ("true" | "false") | NUMBER | "(" expr ")"
+
+factor      : NUMBER -> number
+			| "(" expr ")"
 
 vector      : "[" (expr ("," expr)*)? "]"
 
@@ -26,7 +35,7 @@ TAG         : "@" /[a-zA-Z]+/
 COMMENT     : ("--" | "->") /[^\n]*/
 
 %import common.CNAME            -> IDENTIFIER
-%import common.SIGNED_NUMBER    -> INTEGER
+%import common.NUMBER
 %import common.WS
 
 %ignore WS
