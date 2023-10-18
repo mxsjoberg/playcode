@@ -5,7 +5,7 @@
 import os
 import sys
 
-from lark import Lark
+from lark import Lark, Tree, Transformer
 
 # program           ::= assignment | swap_statement | if_statement | while_statement | PRINT comparison
 # assignment        ::= IDENTIFIER (LSBR expression RSBR)? EQUAL (vector | expression)+
@@ -157,6 +157,34 @@ def interpret(tree):
 
     return result
 
+class interpret_lark(Transformer):
+    def program(self, args):
+        return args[0]
+
+    def expr(self, args):
+        return args[0]
+
+    def term(self, args):
+        return args[0]
+
+    def factor(self, args):
+        return args[0]
+
+    def number(self, args):
+        return eval(args[0])
+    
+    def add(self, args):
+        return int(args[0]) + int(args[1])
+
+    def sub(self, args):
+        return int(args[0]) - int(args[1])
+
+    def mul(self, args):
+        return int(args[0]) * int(args[1])
+
+    def div(self, args):
+        return int(args[0]) / int(args[1])
+
 # **** main ****
 if (__name__ == "__main__"):
     # tests : python3 pc.py --tests
@@ -223,8 +251,9 @@ if (__name__ == "__main__"):
     # lark
     if "--lark" in sys.argv:
         parser = Lark(open("pc.lark", "r").read(), start="program", parser='lalr')
-        program = open("test_tags.pc", "r").read()
-        print(parser.parse(program).pretty())
+        tree = parser.parse(open("test.pc", "r").read())
+        # print(tree)
+        print(interpret_lark().transform(tree))
     # load file
     elif (len(sys.argv) > 1):
         # debug
