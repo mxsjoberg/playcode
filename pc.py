@@ -5,6 +5,8 @@
 import os
 import sys
 
+from lark import Lark
+
 # program           ::= assignment | swap_statement | if_statement | while_statement | PRINT comparison
 # assignment        ::= IDENTIFIER (LSBR expression RSBR)? EQUAL (vector | expression)+
 # tag_statement     ::= TAG (EMPTY | program)+
@@ -28,7 +30,6 @@ def print_tree(tree, indent_level=-2):
         indent = '  ' * indent_level
         print(f"{indent}{tree}")
 
-# from src.consts import *
 from src.tokenizer import *
 from src.parser import *
 
@@ -219,6 +220,11 @@ if (__name__ == "__main__"):
             except:
                 print(f"{COLORS['fail']}Test case: {test} Failed{COLORS['end']}")
         RUNNING_TESTS = False
+    # lark
+    if "--lark" in sys.argv:
+        parser = Lark(open("pc.lark", "r").read(), start="program", parser='lalr')
+        program = open("test_tags.pc", "r").read()
+        print(parser.parse(program).pretty())
     # load file
     elif (len(sys.argv) > 1):
         # debug
