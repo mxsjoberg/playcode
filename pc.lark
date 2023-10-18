@@ -1,0 +1,33 @@
+
+program     : ((TAG)? (assign_stmt | swap_stmt | if_stmt | while_stmt | PRINT comparison))*
+
+assign_stmt : IDENTIFIER ("[" expr "]")? "=" (vector | expr)+
+
+swap_stmt   : "swap" IDENTIFIER ("[" expr "]")? IDENTIFIER ("[" expr "]")?
+
+if_stmt     : "if" comparison "{" (program)* "}" ("else" "{" (program)* "}")?
+
+while_stmt  : "while" comparison "{" (program)* "}"
+
+comparison  : expr (("==" | "!=" | "<" | ">") expr)*
+
+expr        : term (("+" | "-") term)*
+
+term        : factor (("*" | "/") factor)*
+
+factor      : IDENTIFIER ("[" expr "]")? | ("true" | "false") | INTEGER | "(" expr ")"
+
+vector      : "[" (expr ("," expr)*)? "]"
+
+PRINT       : "print"
+
+TAG         : "@" /[a-zA-Z]+/
+
+COMMENT     : ("--" | "->") /[^\n]*/
+
+%import common.CNAME            -> IDENTIFIER
+%import common.SIGNED_NUMBER    -> INTEGER
+%import common.WS
+
+%ignore WS
+%ignore COMMENT
