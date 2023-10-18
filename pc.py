@@ -1,4 +1,8 @@
-#!/usr/local python3.11
+#!/usr/local/bin python3.11
+
+# TODO: move tokenizer and parser to separate files
+
+# TODO: rewrite ast visitor for lark parser output
 
 import os
 import sys
