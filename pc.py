@@ -5,18 +5,6 @@ import sys
 
 from lark import Lark, Tree, Transformer
 
-# program           ::= assignment | swap_statement | if_statement | while_statement | PRINT comparison
-# assignment        ::= IDENTIFIER (LSBR expression RSBR)? EQUAL (vector | expression)+
-# tag_statement     ::= TAG (EMPTY | program)+
-# swap_statement    ::= SWAP IDENTIFIER (LSBR expression RSBR)? IDENTIFIER (LSBR expression RSBR)?
-# if_statement      ::= IF comparison LBRA (program)* RBRA (ELSE LBRA (program)* RBRA)?
-# while_statement   ::= WHILE comparison LBRA (program)* RBRA
-# comparison        ::= expression ((EQUALS | NOT_EQUALS | LESS_THAN | GREATER_THAN) expression)*
-# expression        ::= term ((PLUS | MINUS) term)*
-# term              ::= factor ((MULTIPLY | DIVIDE) factor)*
-# factor            ::= IDENTIFIER (LSBR expression RSBR)? | BOOLEAN | INTEGER | LPAR expression RPAR
-# vector            ::= LSBR (expression (COMMA expression)*)? RSBR
-
 def print_tree(tree, indent_level=-2):
     if isinstance(tree, list):
         for item in tree:
@@ -152,10 +140,12 @@ def interpret(tree):
     return result
 
 def visitor(tree):
-    print(tree.data)
+    # print(tree.data)
     match tree.data:
         case "program":
-            return visitor(tree.children[0])
+            for branch in tree.children:
+                visitor(branch)
+            return
         case "taggable":
             try:
                 if tree.children[0].type == "TAG":
@@ -163,24 +153,43 @@ def visitor(tree):
             except:
                 return visitor(tree.children[0])
         case "assign_stmt":
+            # TODO: left.children[0].value for CNAME? is this best way?
             left, right = tree.children
-            SYMBOL_TABLE[left] = visitor(right)
+            SYMBOL_TABLE[left.children[0].value] = visitor(right)
         case "tag_stmt":
             return visitor(TAG_TABLE[tree.children[0].value])
         case "swap_stmt":
             left, right = tree.children
-            tmp = SYMBOL_TABLE[left]
-            SYMBOL_TABLE[left] = SYMBOL_TABLE[right]
-            SYMBOL_TABLE[right] = tmp
+            if len(left.children) > 1 and len(right.children) > 1:
+                tmp = SYMBOL_TABLE[left.children[0]][visitor(left.children[1])]
+                SYMBOL_TABLE[left.children[0]][visitor(left.children[1])] = SYMBOL_TABLE[right.children[0]][visitor(right.children[1])]
+                SYMBOL_TABLE[right.children[0]][visitor(right.children[1])] = tmp
+            elif len(left.children) > 1:
+                tmp = SYMBOL_TABLE[left.children[0]][visitor(left.children[1])]
+                SYMBOL_TABLE[left.children[0]][visitor(left.children[1])] = SYMBOL_TABLE[right.children[0]]
+                SYMBOL_TABLE[right.children[0]] = tmp
+            elif len(right.children) > 1:
+                tmp = SYMBOL_TABLE[left.children[0]]
+                SYMBOL_TABLE[left.children[0]] = SYMBOL_TABLE[right.children[0]][visitor(right.children[1])]
+                SYMBOL_TABLE[right.children[0]][visitor(right.children[1])] = tmp
+            else:
+                tmp = SYMBOL_TABLE[left.children[0]]
+                SYMBOL_TABLE[left.children[0]] = SYMBOL_TABLE[right.children[0]]
+                SYMBOL_TABLE[right.children[0]] = tmp
         case "if_stmt":
             if bool(visitor(tree.children[0])):
                 return visitor(tree.children[1])
-            else:
+            elif len(tree.children) > 2:
                 return visitor(tree.children[2])
         case "while_stmt":
-            pass
+            while visitor(tree.children[0]):
+                visitor(tree.children[1])
         case "print_stmt":
-            STDOUT.append(visitor(tree.children[0]))
+            output = str(visitor(tree.children[0]))
+            if len(tree.children) > 1 and tree.children[1].data == "assert":
+                if not output == tree.children[1].children[0][1:-1]:
+                    print(f"Assert error: {output} not equal to {tree.children[1].children[0][1:-1]}")
+            STDOUT.append(output)
         case "comparison":
             return visitor(tree.children[0])
         case "expr":
@@ -213,10 +222,21 @@ def visitor(tree):
         case "gt":
             left, right = tree.children
             return int(visitor(left)) > int(visitor(right))
+        case "vector":
+            data = []
+            for branch in tree.children:
+                data.append(visitor(branch))
+            return list(data)
         case "number":
             return int(tree.children[0])
         case "identifier":
-            return SYMBOL_TABLE[str(tree.children[0])]
+            if len(tree.children) > 1:
+                return SYMBOL_TABLE[str(tree.children[0])][int(visitor(tree.children[1]))]
+            else:
+                return SYMBOL_TABLE[str(tree.children[0])]
+        case "assert":
+            print("-- HERE 1")
+            pass
         case "true":
             return True
         case "false":
