@@ -1,5 +1,5 @@
 
-program     : ((TAG)? (expr | assign_stmt | swap_stmt | if_stmt | while_stmt | "print" comparison))*
+program     : ((TAG)? (expr | assign_stmt | swap_stmt | if_stmt | while_stmt | print_stmt))*
 
 assign_stmt : IDENTIFIER ("[" expr "]")? "=" (vector | expr)
 
@@ -8,6 +8,8 @@ swap_stmt   : "swap" IDENTIFIER ("[" expr "]")? IDENTIFIER ("[" expr "]")?
 if_stmt     : "if" comparison "{" (program)* "}" ("else" "{" (program)* "}")?
 
 while_stmt  : "while" comparison "{" (program)* "}"
+
+print_stmt  : "print" comparison
 
 comparison  : expr
             | expr "==" expr                -> eq
@@ -23,7 +25,7 @@ term        : factor
             | factor "*" factor             -> mul
             | factor "/" factor             -> div
 
-factor      : NUMBER                        -> number
+factor      : SIGNED_NUMBER                 -> number
             | IDENTIFIER ("[" expr "]")?    -> identifier
             | "True"                        -> true
             | "False"                       -> false
@@ -36,7 +38,7 @@ TAG         : "@" IDENTIFIER
 COMMENT     : ("--" | "->") /[^\n]*/
 
 %import common.CNAME -> IDENTIFIER
-%import common.NUMBER
+%import common.SIGNED_NUMBER
 %import common.WS
 
 %ignore WS
