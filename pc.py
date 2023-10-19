@@ -205,6 +205,8 @@ def visitor(tree):
             condition, body, otherwise = tree.children
             if visitor(condition):
                 return visitor(body)
+        case "comparison":
+            return visitor(tree.children[0])
         case "expr":
             return visitor(tree.children[0])
         case "term":
@@ -215,12 +217,34 @@ def visitor(tree):
             return int(tree.children[0])
         case "identifier":
             return SYMBOL_TABLE[tree.children[0]]
+        case "true":
+            return True
+        case "false":
+            return False
         case "add":
             left, right = tree.children
             return int(visitor(left)) + int(visitor(right))
         case "sub":
             left, right = tree.children
             return int(visitor(left)) - int(visitor(right))
+        case "mul":
+            left, right = tree.children
+            return int(visitor(left)) * int(visitor(right))
+        case "div":
+            left, right = tree.children
+            return int(visitor(left)) / int(visitor(right))
+        case "eq":
+            left, right = tree.children
+            return int(visitor(left)) == int(visitor(right))
+        case "neq":
+            left, right = tree.children
+            return int(visitor(left)) != int(visitor(right))
+        case "lt":
+            left, right = tree.children
+            return int(visitor(left)) < int(visitor(right))
+        case "gt":
+            left, right = tree.children
+            return int(visitor(left)) > int(visitor(right))
 
 # **** main ****
 if (__name__ == "__main__"):
