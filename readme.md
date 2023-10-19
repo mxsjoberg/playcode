@@ -18,6 +18,7 @@ print 42
 
 ```
 x = 2
+
 if x > 0 {
     print True
 } else {
@@ -29,39 +30,50 @@ if x > 0 {
 -- swap
 x = 2 * 2
 y = 2
+
 swap x y
--- print
-print 1 + (x * y) - (6 / x) -> 6
+
+print 1 + (x * y) - (6 / x) -> "6"
 ```
 
 ```
--- tags
 x = 0
+
 @inc x = x + 1
 @inc
-print x -> 1
+
+print x -> "1"
 ```
 
-There are two ways to include comments, `--` and `->`, see example programs above.
+```
+-- this is a comment
+```
+
+```
+-- this is an assert without output
+x -> "2"
+```
+
+```
+-- and this is assert with output
+print x -> "2"
+```
 
 ## Current status
 
-```bash
-python3 pc.py --tests
-```
+Working to replace handwritten lexer and parser with [Lark](https://github.com/lark-parser/lark).
 
-![tests.png](tests.png)
-
-### Example: bubble sort in PlayCode
+### Example: bubble sort
 
 ```
 -- bubble sort
 x = [5, 3, 8, 4, 2]
 n = 5
 i = 0
+@init_j j = 0
 while i < (n - 1) {
-    j = 0
-    while j < (n - i - 1) {
+    @init_j
+    while j < (n - 1) {
         if x[j] > x[j + 1] {
             swap x[j] x[j + 1]
         }
@@ -69,12 +81,10 @@ while i < (n - 1) {
     }
     i = i + 1
 }
+x -> "[2, 3, 4, 5, 8]"
 ```
 
-Run with `python3 pc.py test_bubblesort.pc --symbols`
-
 ```
-Symbols: {'x': {'type': 'vector', 'values': [2, 3, 4, 5, 8]}, 'n': '5', 'i': 4, 'j': 1}
-Tags: {}
+{'x': [2, 3, 4, 5, 8], 'n': 5, 'i': 4, 'j': 4}
 ```
 
