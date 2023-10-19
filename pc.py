@@ -1,7 +1,5 @@
 #!/usr/local/bin python3.11
 
-# TODO: rewrite ast visitor for lark parser output
-
 import os
 import sys
 
@@ -32,10 +30,6 @@ def print_tree(tree, indent_level=-2):
 
 from src.tokenizer import *
 from src.parser import *
-
-# global DEBUG
-# global SYMBOL_TABLE
-# global TAGS_TABLE
 
 # **** interpreter ****
 def interpret(tree):
@@ -158,15 +152,26 @@ def interpret(tree):
     return result
 
 def visitor(tree):
-    # print(tree.data)
+    print(tree.data)
     match tree.data:
         case "program":
             return visitor(tree.children[0])
+        case "taggable":
+            try:
+                if tree.children[0].type == "TAG":
+                    TAG_TABLE[tree.children[0]] = tree.children[1]
+            except:
+                return visitor(tree.children[0])
         case "assign_stmt":
             left, right = tree.children
             SYMBOL_TABLE[left] = visitor(right)
+        case "tag_stmt":
+            return visitor(TAG_TABLE[tree.children[0].value])
         case "swap_stmt":
-            pass
+            left, right = tree.children
+            tmp = SYMBOL_TABLE[left]
+            SYMBOL_TABLE[left] = SYMBOL_TABLE[right]
+            SYMBOL_TABLE[right] = tmp
         case "if_stmt":
             if bool(visitor(tree.children[0])):
                 return visitor(tree.children[1])
@@ -211,7 +216,7 @@ def visitor(tree):
         case "number":
             return int(tree.children[0])
         case "identifier":
-            return SYMBOL_TABLE[tree.children[0]]
+            return SYMBOL_TABLE[str(tree.children[0])]
         case "true":
             return True
         case "false":
@@ -282,10 +287,11 @@ if (__name__ == "__main__"):
         RUNNING_TESTS = False
     # python3 pc.py --lark
     if "--lark" in sys.argv:
-        parser = Lark(open("pc.lark", "r").read(), start="program", parser='lalr')
+        parser = Lark(open("pc.lark", "r").read(), start="program", parser="lalr")
         tree = parser.parse(open("test.pc", "r").read())
         # print(tree)
         SYMBOL_TABLE = {}
+        TAG_TABLE = {}
         STDOUT = []
         for branch in tree.children: visitor(branch)
         print(SYMBOL_TABLE)
