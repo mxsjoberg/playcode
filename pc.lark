@@ -1,5 +1,5 @@
 
-program     : (taggable | tag_stmt | swap_stmt | if_stmt | while_stmt | print_stmt)*
+program     : (taggable | tag_stmt | swap_stmt | if_stmt | while_stmt | assert_stmt | print_stmt)*
 
 taggable    : (TAG)? assign_stmt
 
@@ -12,6 +12,8 @@ swap_stmt   : "swap" identifier identifier
 if_stmt     : "if" comparison "{" (program)* "}" ("else" "{" (program)* "}")?
 
 while_stmt  : "while" comparison "{" (program)* "}"
+
+assert_stmt : identifier assert
 
 print_stmt  : "print" comparison (assert)?
 
