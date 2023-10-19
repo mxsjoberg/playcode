@@ -33,9 +33,9 @@ def print_tree(tree, indent_level=-2):
 from src.tokenizer import *
 from src.parser import *
 
-global DEBUG
-global SYMBOL_TABLE
-global TAGS_TABLE
+# global DEBUG
+# global SYMBOL_TABLE
+# global TAGS_TABLE
 
 # **** interpreter ****
 def interpret(tree):
@@ -195,22 +195,32 @@ class lark_transform(Transformer):
     def div(self, args):
         return int(args[0]) / int(args[1])
 
-def lark_interpret(tree):
+def visitor(tree):
     print(tree.data)
     match tree.data:
         case "assign_stmt":
             left, right = tree.children
-            SYMBOL_TABLE[left] = lark_interpret(right)
+            SYMBOL_TABLE[left] = visitor(right)
         case "if_stmt":
             condition, body, otherwise = tree.children
-            if lark_interpret(condition):
-                return lark_interpret(body)
+            if visitor(condition):
+                return visitor(body)
         case "expr":
-            return lark_interpret(tree.children[0])
+            return visitor(tree.children[0])
         case "term":
-            return lark_interpret(tree.children[0])
+            return visitor(tree.children[0])
+        case "factor":
+            return visitor(tree.children[0])
         case "number":
             return int(tree.children[0])
+        case "identifier":
+            return SYMBOL_TABLE[tree.children[0]]
+        case "add":
+            left, right = tree.children
+            return int(visitor(left)) + int(visitor(right))
+        case "sub":
+            left, right = tree.children
+            return int(visitor(left)) - int(visitor(right))
 
 # **** main ****
 if (__name__ == "__main__"):
@@ -279,14 +289,14 @@ if (__name__ == "__main__"):
     if "--lark" in sys.argv:
         parser = Lark(open("pc.lark", "r").read(), start="program", parser='lalr')
         tree = parser.parse(open("test.pc", "r").read())
-        # print(tree)
+        print(tree)
         # result = lark_transform().transform(tree)
         # print(result)
         SYMBOL_TABLE = {}
         STDOUT = []
         for branch in tree.children:
             # print("\n", branch)
-            lark_interpret(branch)
+            visitor(branch)
         print(SYMBOL_TABLE)
     # load file
     elif (len(sys.argv) > 1):
