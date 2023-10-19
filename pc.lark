@@ -1,7 +1,11 @@
 
-program     : ((TAG)? (expr | assign_stmt | swap_stmt | if_stmt | while_stmt | print_stmt))*
+program     : (taggable | tag_stmt | swap_stmt | if_stmt | while_stmt | print_stmt)*
+
+taggable    : (TAG)? assign_stmt
 
 assign_stmt : IDENTIFIER ("[" expr "]")? "=" (vector | expr)
+
+tag_stmt    : TAG
 
 swap_stmt   : "swap" IDENTIFIER ("[" expr "]")? IDENTIFIER ("[" expr "]")?
 
@@ -12,18 +16,18 @@ while_stmt  : "while" comparison "{" (program)* "}"
 print_stmt  : "print" comparison
 
 comparison  : expr
-            | expr "==" expr                -> eq
-            | expr "!=" expr                -> neq
-            | expr "<" expr                 -> lt
-            | expr ">" expr                 -> gt
+            | expr "==" comparison                -> eq
+            | expr "!=" comparison                -> neq
+            | expr "<" comparison                 -> lt
+            | expr ">" comparison                 -> gt
 
 expr        : term
-            | term "+" term                 -> add
-            | term "-" term                 -> sub
+            | term "+" expr                 -> add
+            | term "-" expr                 -> sub
 
 term        : factor
-            | factor "*" factor             -> mul
-            | factor "/" factor             -> div
+            | factor "*" term             -> mul
+            | factor "/" term             -> div
 
 factor      : SIGNED_NUMBER                 -> number
             | IDENTIFIER ("[" expr "]")?    -> identifier
@@ -33,7 +37,7 @@ factor      : SIGNED_NUMBER                 -> number
 
 vector      : "[" (expr ("," expr)*)? "]"
 
-TAG         : "@" IDENTIFIER
+TAG         : /@[a-zA-Z]+/
 
 COMMENT     : ("--" | "->") /[^\n]*/
 
