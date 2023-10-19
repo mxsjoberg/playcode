@@ -1,5 +1,5 @@
 
-program     : ((TAG)? (expr | assign_stmt | swap_stmt | if_stmt | while_stmt | PRINT comparison))*
+program     : ((TAG)? (expr | assign_stmt | swap_stmt | if_stmt | while_stmt | "print" comparison))*
 
 assign_stmt : IDENTIFIER ("[" expr "]")? "=" (vector | expr)
 
@@ -9,30 +9,33 @@ if_stmt     : "if" comparison "{" (program)* "}" ("else" "{" (program)* "}")?
 
 while_stmt  : "while" comparison "{" (program)* "}"
 
-comparison  : expr (("==" | "!=" | "<" | ">") expr)*
+comparison  : expr
+            | expr "==" expr                -> eq
+            | expr "!=" expr                -> neq
+            | expr "<" expr                 -> lt
+            | expr ">" expr                 -> gt
 
-expr 		: term
-		    | term "+" term -> add
-		    | term "-" term -> sub
+expr        : term
+            | term "+" term                 -> add
+            | term "-" term                 -> sub
 
 term        : factor
-			| factor "*" factor -> mul
-			| factor "/" factor -> div
+            | factor "*" factor             -> mul
+            | factor "/" factor             -> div
 
-// factor      : IDENTIFIER ("[" expr "]")? | ("true" | "false") | NUMBER | "(" expr ")"
-
-factor      : NUMBER -> number
-			| "(" expr ")"
+factor      : NUMBER                        -> number
+            | IDENTIFIER ("[" expr "]")?    -> identifier
+            | "True"                        -> true
+            | "False"                       -> false
+            | "(" expr ")"
 
 vector      : "[" (expr ("," expr)*)? "]"
 
-PRINT       : "print"
-
-TAG         : "@" /[a-zA-Z]+/
+TAG         : "@" IDENTIFIER
 
 COMMENT     : ("--" | "->") /[^\n]*/
 
-%import common.CNAME            -> IDENTIFIER
+%import common.CNAME -> IDENTIFIER
 %import common.NUMBER
 %import common.WS
 
