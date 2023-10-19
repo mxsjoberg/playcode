@@ -1,6 +1,4 @@
-x = -1
-if x > 0 {
-    print True
-} else {
-    print False
-}
+x = 0
+@inc x = x + 1
+@inc
+print x -> 1
