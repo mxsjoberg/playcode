@@ -184,6 +184,10 @@ def visitor(tree):
         case "while_stmt":
             while visitor(tree.children[0]):
                 visitor(tree.children[1])
+        case "assert_stmt":
+            value = str(visitor(tree.children[0]))
+            if not value == tree.children[1].children[0][1:-1]:
+                print(f"Assert error: {value} not equal to {tree.children[1].children[0][1:-1]}")
         case "print_stmt":
             output = str(visitor(tree.children[0]))
             if len(tree.children) > 1 and tree.children[1].data == "assert":
