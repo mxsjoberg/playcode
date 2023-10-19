@@ -3,17 +3,17 @@ program     : (taggable | tag_stmt | swap_stmt | if_stmt | while_stmt | print_st
 
 taggable    : (TAG)? assign_stmt
 
-assign_stmt : IDENTIFIER ("[" expr "]")? "=" (vector | expr)
+assign_stmt : identifier "=" (vector | expr)
 
 tag_stmt    : TAG
 
-swap_stmt   : "swap" IDENTIFIER ("[" expr "]")? IDENTIFIER ("[" expr "]")?
+swap_stmt   : "swap" identifier identifier
 
 if_stmt     : "if" comparison "{" (program)* "}" ("else" "{" (program)* "}")?
 
 while_stmt  : "while" comparison "{" (program)* "}"
 
-print_stmt  : "print" comparison
+print_stmt  : "print" comparison (assert)?
 
 comparison  : expr
             | expr "==" comparison                -> eq
@@ -30,18 +30,23 @@ term        : factor
             | factor "/" term             -> div
 
 factor      : SIGNED_NUMBER                 -> number
-            | IDENTIFIER ("[" expr "]")?    -> identifier
+            | identifier
             | "True"                        -> true
             | "False"                       -> false
             | "(" expr ")"
 
+identifier  : CNAME ("[" expr "]")?
+
 vector      : "[" (expr ("," expr)*)? "]"
+
+assert      : "->" STRING
 
 TAG         : /@[a-zA-Z]+/
 
-COMMENT     : ("--" | "->") /[^\n]*/
+COMMENT     : "--" /[^\n]*/
 
-%import common.CNAME -> IDENTIFIER
+%import common.ESCAPED_STRING -> STRING
+%import common.CNAME
 %import common.SIGNED_NUMBER
 %import common.WS
 
