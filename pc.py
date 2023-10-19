@@ -157,54 +157,25 @@ def interpret(tree):
 
     return result
 
-class lark_transform(Transformer):
-    def __init__(self):
-        self.vars = {}
-    
-    def program(self, args):
-        return args[0]
-
-    def assign_stmt(self, args):
-        self.vars[args[0]] = args[1]
-        return
-
-    def if_stmt(self, args):
-        return args[0]
-
-    def expr(self, args):
-        return args[0]
-
-    def term(self, args):
-        return args[0]
-
-    def factor(self, args):
-        return args[0]
-
-    def number(self, args):
-        return eval(args[0])
-    
-    def add(self, args):
-        return int(args[0]) + int(args[1])
-
-    def sub(self, args):
-        return int(args[0]) - int(args[1])
-
-    def mul(self, args):
-        return int(args[0]) * int(args[1])
-
-    def div(self, args):
-        return int(args[0]) / int(args[1])
-
 def visitor(tree):
-    print(tree.data)
+    # print(tree.data)
     match tree.data:
+        case "program":
+            return visitor(tree.children[0])
         case "assign_stmt":
             left, right = tree.children
             SYMBOL_TABLE[left] = visitor(right)
+        case "swap_stmt":
+            pass
         case "if_stmt":
-            condition, body, otherwise = tree.children
-            if visitor(condition):
-                return visitor(body)
+            if bool(visitor(tree.children[0])):
+                return visitor(tree.children[1])
+            else:
+                return visitor(tree.children[2])
+        case "while_stmt":
+            pass
+        case "print_stmt":
+            STDOUT.append(visitor(tree.children[0]))
         case "comparison":
             return visitor(tree.children[0])
         case "expr":
@@ -213,14 +184,6 @@ def visitor(tree):
             return visitor(tree.children[0])
         case "factor":
             return visitor(tree.children[0])
-        case "number":
-            return int(tree.children[0])
-        case "identifier":
-            return SYMBOL_TABLE[tree.children[0]]
-        case "true":
-            return True
-        case "false":
-            return False
         case "add":
             left, right = tree.children
             return int(visitor(left)) + int(visitor(right))
@@ -245,10 +208,18 @@ def visitor(tree):
         case "gt":
             left, right = tree.children
             return int(visitor(left)) > int(visitor(right))
+        case "number":
+            return int(tree.children[0])
+        case "identifier":
+            return SYMBOL_TABLE[tree.children[0]]
+        case "true":
+            return True
+        case "false":
+            return False
 
 # **** main ****
 if (__name__ == "__main__"):
-    # tests : python3 pc.py --tests
+    # python3 pc.py --tests
     if "--tests" in sys.argv:
         print(f"{COLORS['cyan']}Running tests{COLORS['end']}")
         STDOUT = []
@@ -309,20 +280,17 @@ if (__name__ == "__main__"):
             except:
                 print(f"{COLORS['fail']}Test case: {test} Failed{COLORS['end']}")
         RUNNING_TESTS = False
-    # lark
+    # python3 pc.py --lark
     if "--lark" in sys.argv:
         parser = Lark(open("pc.lark", "r").read(), start="program", parser='lalr')
         tree = parser.parse(open("test.pc", "r").read())
-        print(tree)
-        # result = lark_transform().transform(tree)
-        # print(result)
+        # print(tree)
         SYMBOL_TABLE = {}
         STDOUT = []
-        for branch in tree.children:
-            # print("\n", branch)
-            visitor(branch)
+        for branch in tree.children: visitor(branch)
         print(SYMBOL_TABLE)
-    # load file
+        print(STDOUT)
+    # python3 pc.py <file>
     elif (len(sys.argv) > 1):
         # debug
         if DEBUG: print(f"{COLORS['warning']}DEBUG{COLORS['end']}")
