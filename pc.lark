@@ -43,7 +43,7 @@ vector      : "[" (expr ("," expr)*)? "]"
 
 assert      : "->" STRING
 
-TAG         : /@[a-zA-Z]+/
+TAG         : /@[a-zA-Z_]+/
 
 COMMENT     : "--" /[^\n]*/
 
