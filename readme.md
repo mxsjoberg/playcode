@@ -1,4 +1,4 @@
-![](playcode.png)
+![](misc/playcode.png)
 
 # PlayCode: A Playful Programming Language
 
@@ -94,5 +94,7 @@ TAG_TABLE: {'@init_j': Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'i
 
 ### TODOs
 
-![todo.png](todo.png)
+Using [todoparser.sh](https://github.com/mxsjoberg/todoparser).
+
+![todo.png](misc/todo.png)
 
