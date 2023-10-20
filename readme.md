@@ -64,7 +64,7 @@ print x -> "2"
 
 Working to replace handwritten lexer and parser with [Lark](https://github.com/lark-parser/lark).
 
-### Example: bubble sort
+### Working example: bubble sort
 
 ```
 -- bubble sort
@@ -85,7 +85,14 @@ while i < (n - 1) {
 x -> "[2, 3, 4, 5, 8]"
 ```
 
+Running `python3 pc.py tests/test_bubblesort.pc --tables`.
+
 ```
-{'x': [2, 3, 4, 5, 8], 'n': 5, 'i': 4, 'j': 4}
+SYMBOL_TABLE: {'x': [2, 3, 4, 5, 8], 'n': 5, 'i': 4, 'j': 4}
+TAG_TABLE: {'@init_j': Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'identifier'), [Token('CNAME', 'j')]), Tree(Token('RULE', 'expr'), [Tree(Token('RULE', 'term'), [Tree('number', [Token('SIGNED_NUMBER', '0')])])])])}
 ```
+
+### TODOs
+
+![todo.png](todo.png)
 
