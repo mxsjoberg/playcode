@@ -1,5 +1,8 @@
+-- while loop
 x = 0
+
 while x < 4 {
     x = x + 1
 }
-print x
+
+print x -> "4"

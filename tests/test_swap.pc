@@ -1,0 +1,7 @@
+-- swap
+x = 2 * 2
+y = 2
+
+swap x y
+
+print 1 + (x * y) - (6 / x) -> "6"
