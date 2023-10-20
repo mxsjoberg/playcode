@@ -1,10 +1,9 @@
--- bubble sort
 x = [5, 3, 8, 4, 2]
 n = 5
 i = 0
 @init_j j = 0
 while i < (n - 1) {
-	@init_j
+    @init_j
     while j < (n - 1) {
         if x[j] > x[j + 1] {
             swap x[j] x[j + 1]
