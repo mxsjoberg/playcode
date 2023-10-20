@@ -10,6 +10,9 @@ Currently experimenting with the following features:
 
 - **Swaps** `swap <a> <b>` to swap the values of two variables, which is useful for example when sorting. What else could be swapped? AST branch?
 
+- **Inline asserts** `x -> "2"` to assert that `x` is equal to `"2"`. This is useful for testing and debugging. 
+
+
 Below are examples of valid programs.
 
 ```
