@@ -95,6 +95,44 @@ SYMBOL_TABLE: {'x': [2, 3, 4, 5, 8], 'n': 5, 'i': 4, 'j': 4}
 TAG_TABLE: {'@init_j': Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'identifier'), [Token('CNAME', 'j')]), Tree(Token('RULE', 'expr'), [Tree(Token('RULE', 'term'), [Tree('number', [Token('SIGNED_NUMBER', '0')])])])])}
 ```
 
+### Inline asserts example
+
+```
+-- bubble sort
+x = [5, 3, 8, 4, 2]
+n = 5
+i = 0
+@init_j j = 0
+while i < (n - 1) {
+    @init_j
+    while j < (n - 1) {
+        if x[j] > x[j + 1] {
+            swap x[j] x[j + 1]
+        }
+        j = j + 1
+    }
+    i = i + 1
+}
+
+-- bad change
+x[2] = 1
+
+x -> "[2, 3, 4, 5, 8]"
+```
+
+Running `python3 pc.py --tests`.
+
+```
+Running tests
+  tests/test_while.pc OK
+  tests/test_tags.pc OK
+  tests/test_bubblesort.pc Failed
+    1 - Assert error: [2, 3, 1, 5, 8] not equal to [2, 3, 4, 5, 8]
+  tests/test_swap.pc OK
+  tests/test_if.pc OK
+Done
+```
+
 ### TODOs
 
 Using [todoparser.sh](https://github.com/mxsjoberg/todoparser).
