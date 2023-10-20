@@ -29,7 +29,7 @@ def visitor(tree):
         case "taggable":
             try:
                 if tree.children[0].type == "TAG":
-                    TAG_TABLE[tree.children[0]] = tree.children[1]
+                    TAG_TABLE[tree.children[0].value] = tree.children[1]
             except:
                 return visitor(tree.children[0])
         case "assign_stmt":
