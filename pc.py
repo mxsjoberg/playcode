@@ -20,7 +20,6 @@ COLORS = {
 parser = Lark(open("pc.lark", "r").read(), start="program", parser="lalr")
 
 def visitor(tree):
-    # print(tree.data)
     match tree.data:
         case "program":
             for branch in tree.children:
@@ -35,7 +34,10 @@ def visitor(tree):
         case "assign_stmt":
             # TODO: left.children[0].value for CNAME? is this best way?
             left, right = tree.children
-            SYMBOL_TABLE[left.children[0].value] = visitor(right)
+            if len(left.children) > 1:
+                SYMBOL_TABLE[left.children[0].value][visitor(left.children[1])] = visitor(right)
+            else:
+                SYMBOL_TABLE[left.children[0].value] = visitor(right)
         case "tag_stmt":
             return visitor(TAG_TABLE[tree.children[0].value])
         case "swap_stmt":
@@ -67,7 +69,7 @@ def visitor(tree):
         case "assert_stmt":
             value = str(visitor(tree.children[0]))
             if not value == tree.children[1].children[0][1:-1]:
-                print(f"Assert error: {value} not equal to {tree.children[1].children[0][1:-1]}")
+                STDERR.append(f"Assert error: {value} not equal to {tree.children[1].children[0][1:-1]}")
         case "print_stmt":
             output = str(visitor(tree.children[0]))
             if len(tree.children) > 1 and tree.children[1].data == "assert":
