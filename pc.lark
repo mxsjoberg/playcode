@@ -18,23 +18,23 @@ assert_stmt : identifier assert
 print_stmt  : "print" comparison (assert)?
 
 comparison  : expr
-            | expr "==" comparison                -> eq
-            | expr "!=" comparison                -> neq
-            | expr "<" comparison                 -> lt
-            | expr ">" comparison                 -> gt
+            | expr "==" comparison      -> eq
+            | expr "!=" comparison      -> neq
+            | expr "<" comparison       -> lt
+            | expr ">" comparison       -> gt
 
 expr        : term
-            | term "+" expr                 -> add
-            | term "-" expr                 -> sub
+            | term "+" expr             -> add
+            | term "-" expr             -> sub
 
 term        : factor
-            | factor "*" term             -> mul
-            | factor "/" term             -> div
+            | factor "*" term           -> mul
+            | factor "/" term           -> div
 
-factor      : SIGNED_NUMBER                 -> number
+factor      : SIGNED_NUMBER             -> number
             | identifier
-            | "True"                        -> true
-            | "False"                       -> false
+            | "True"                    -> true
+            | "False"                   -> false
             | "(" expr ")"
 
 identifier  : CNAME ("[" expr "]")?
