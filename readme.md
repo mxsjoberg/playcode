@@ -1,6 +1,17 @@
-![](misc/playcode.png)
+<div align="center">
 
-# PlayCode: A Playful Programming Language
+<a href="https://github.com/mxsjoberg/playcode" alt="PlayCode">
+    <img src="misc/playcode.png" height="220"/>
+</a>
+
+<h1 style="border-bottom: none">
+    <b>PlayCode</b>
+    <br>
+    A Playful Programming Language
+    <br>
+</h1>
+
+</div>
 
 PlayCode is procedural because knowing-how is more important than knowing-that, i.e. [street smarts](https://en.wikipedia.org/wiki/Procedural_knowledge). It will most likely be dynamically typed because no one have time for types anyway? There will be numbers, maybe strings, probably arrays, if-statements, while-loops, variables, and comments.
 
