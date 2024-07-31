@@ -55,6 +55,12 @@ def codegen(tree):
                 cout = cout + " else {\n"
                 codegen(tree.children[2])
                 cout = cout + "  }\n"
+        case "while_stmt":
+            cout = cout + "  while ("
+            codegen(tree.children[0])
+            cout = cout + ") {\n"
+            codegen(tree.children[1])
+            cout = cout + "  }\n"
         case "print_stmt":
             cout = cout + f"  printf(\"%d\\n\", "
             codegen(tree.children[0])
@@ -72,10 +78,40 @@ def codegen(tree):
             codegen(left)
             cout = cout + " + "
             codegen(right)
+        case "sub":
+            left, right = tree.children
+            codegen(left)
+            cout = cout + " - "
+            codegen(right)
         case "mul":
             left, right = tree.children
             codegen(left)
             cout = cout + " * "
+            codegen(right)
+        case "div":
+            left, right = tree.children
+            codegen(left)
+            cout = cout + " / "
+            codegen(right)
+        case "eq":
+            left, right = tree.children
+            codegen(left)
+            cout = cout + " == "
+            codegen(right)
+        case "neq":
+            left, right = tree.children
+            codegen(left)
+            cout = cout + " != "
+            codegen(right)
+        case "lt":
+            left, right = tree.children
+            codegen(left)
+            cout = cout + " < "
+            codegen(right)
+        case "gt":
+            left, right = tree.children
+            codegen(left)
+            cout = cout + " > "
             codegen(right)
         case "number":
             cout = cout + f"{tree.children[0]}"
@@ -220,6 +256,7 @@ if (__name__ == "__main__"):
         TAG_TABLE = {}
         STDOUT = []
         STDERR = []
+        # TODO need to get all symbols in first pass to add at top in c output
         # for branch in tree.children: visitor(branch)
         if not len(STDOUT) == 0:
             for output in STDOUT: print(output)
@@ -231,6 +268,8 @@ if (__name__ == "__main__"):
         cout = cout + """int main() {\n"""
         for branch in tree.children: codegen(branch)
         cout = cout + """\n  return 0;\n}"""
+
+        print(SYMBOL_TABLE)
 
         # compile and run cout using gcc
         with open("out.c", "w") as f: f.write(cout)
