@@ -45,6 +45,16 @@ def codegen(tree):
             cout = cout + ";\n"
         case "tag_stmt":
             return codegen(TAG_TABLE[tree.children[0].value])
+        case "if_stmt":
+            cout = cout + "  if ("
+            codegen(tree.children[0])
+            cout = cout + ") {\n"
+            codegen(tree.children[1])
+            cout = cout + "  }"
+            if len(tree.children) > 2:
+                cout = cout + " else {\n"
+                codegen(tree.children[2])
+                cout = cout + "  }\n"
         case "print_stmt":
             cout = cout + f"  printf(\"%d\\n\", "
             codegen(tree.children[0])
@@ -71,6 +81,10 @@ def codegen(tree):
             cout = cout + f"{tree.children[0]}"
         case "identifier":
             cout = cout + f"{str(tree.children[0])}" if str(tree.children[0]) in SYMBOL_TABLE else '0'
+        case "true":
+            cout = cout + "1"
+        case "false":
+            cout = cout + "0"
 
 def visitor(tree):
     match tree.data:
