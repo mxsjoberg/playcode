@@ -32,7 +32,6 @@ def visitor(tree):
             except:
                 return visitor(tree.children[0])
         case "assign_stmt":
-            # TODO: left.children[0].value for CNAME? is this best way?
             left, right = tree.children
             if len(left.children) > 1:
                 SYMBOL_TABLE[left.children[0].value][visitor(left.children[1])] = visitor(right)
