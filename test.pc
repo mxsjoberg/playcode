@@ -1,4 +1,8 @@
 x = 2 * 2
 y = x + 2
 
-print y
+if True {
+	print y
+} else {
+	print x
+}
