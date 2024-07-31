@@ -19,6 +19,59 @@ COLORS = {
 
 parser = Lark(open("pc.lark", "r").read(), start="program", parser="lalr")
 
+cout = """"""
+
+def codegen(tree):
+    global cout
+    match tree.data:
+        case "program":
+            for branch in tree.children:
+                codegen(branch)
+            return
+        case "taggable":
+            try:
+                if tree.children[0].type == "TAG":
+                    TAG_TABLE[tree.children[0].value] = tree.children[1]
+            except:
+                return codegen(tree.children[0])
+        case "assign_stmt":
+            left, right = tree.children
+            if len(left.children) > 1:
+                SYMBOL_TABLE[left.children[0].value][visitor(left.children[1])] = visitor(right)
+            else:
+                SYMBOL_TABLE[left.children[0].value] = visitor(right)
+            cout = cout + f"  int {left.children[0].value} = "
+            codegen(right)
+            cout = cout + ";\n"
+        case "tag_stmt":
+            return codegen(TAG_TABLE[tree.children[0].value])
+        case "print_stmt":
+            cout = cout + f"  printf(\"%d\\n\", "
+            codegen(tree.children[0])
+            cout = cout + ");\n"
+        case "comparison":
+            return codegen(tree.children[0])
+        case "expr":
+            return codegen(tree.children[0])
+        case "term":
+            return codegen(tree.children[0])
+        case "factor":
+            return codegen(tree.children[0])
+        case "add":
+            left, right = tree.children
+            codegen(left)
+            cout = cout + " + "
+            codegen(right)
+        case "mul":
+            left, right = tree.children
+            codegen(left)
+            cout = cout + " * "
+            codegen(right)
+        case "number":
+            cout = cout + f"{tree.children[0]}"
+        case "identifier":
+            cout = cout + f"{str(tree.children[0])}" if str(tree.children[0]) in SYMBOL_TABLE else '0'
+
 def visitor(tree):
     match tree.data:
         case "program":
@@ -153,11 +206,21 @@ if (__name__ == "__main__"):
         TAG_TABLE = {}
         STDOUT = []
         STDERR = []
-        for branch in tree.children: visitor(branch)
+        # for branch in tree.children: visitor(branch)
         if not len(STDOUT) == 0:
             for output in STDOUT: print(output)
         if "--tables" in sys.argv:
             print(f"{COLORS['warning']}SYMBOL_TABLE: {SYMBOL_TABLE}{COLORS['end']}")
             print(f"{COLORS['warning']}TAG_TABLE: {TAG_TABLE}{COLORS['end']}")
+
+        cout = "#include <stdio.h>\n\n"
+        cout = cout + """int main() {\n"""
+        for branch in tree.children: codegen(branch)
+        cout = cout + """\n  return 0;\n}"""
+
+        # compile and run cout using gcc
+        with open("out.c", "w") as f: f.write(cout)
+        os.system("gcc -o out out.c")
+        os.system("./out")
     else:
         print(f"{COLORS['fail']}No source file provided{COLORS['end']}")
