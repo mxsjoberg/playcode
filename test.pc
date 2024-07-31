@@ -1,8 +1,8 @@
-x = 2 * 2
-y = x + 2
-
-if True {
-	print y
+-- if statement
+x = 2
+if x > 0 {
+    is_true = True
 } else {
-	print x
+    is_true = False
 }
+print is_true
