@@ -21,107 +21,6 @@ parser = Lark(open("pc.lark", "r").read(), start="program", parser="lalr")
 
 cout = """"""
 
-def codegen(tree):
-    global cout
-    match tree.data:
-        case "program":
-            for branch in tree.children:
-                codegen(branch)
-            return
-        case "taggable":
-            try:
-                if tree.children[0].type == "TAG":
-                    TAG_TABLE[tree.children[0].value] = tree.children[1]
-            except:
-                return codegen(tree.children[0])
-        case "assign_stmt":
-            left, right = tree.children
-            if len(left.children) > 1:
-                SYMBOL_TABLE[left.children[0].value][visitor(left.children[1])] = visitor(right)
-            else:
-                SYMBOL_TABLE[left.children[0].value] = visitor(right)
-            cout = cout + f"  {left.children[0].value} = "
-            codegen(right)
-            cout = cout + ";\n"
-        case "tag_stmt":
-            return codegen(TAG_TABLE[tree.children[0].value])
-        case "if_stmt":
-            cout = cout + "  if ("
-            codegen(tree.children[0])
-            cout = cout + ") {\n"
-            codegen(tree.children[1])
-            cout = cout + "  }"
-            if len(tree.children) > 2:
-                cout = cout + " else {\n"
-                codegen(tree.children[2])
-                cout = cout + "  }\n"
-        case "while_stmt":
-            cout = cout + "  while ("
-            codegen(tree.children[0])
-            cout = cout + ") {\n"
-            codegen(tree.children[1])
-            cout = cout + "  }\n"
-        case "print_stmt":
-            cout = cout + f"  printf(\"%d\\n\", "
-            codegen(tree.children[0])
-            cout = cout + ");\n"
-        case "comparison":
-            return codegen(tree.children[0])
-        case "expr":
-            return codegen(tree.children[0])
-        case "term":
-            return codegen(tree.children[0])
-        case "factor":
-            return codegen(tree.children[0])
-        case "add":
-            left, right = tree.children
-            codegen(left)
-            cout = cout + " + "
-            codegen(right)
-        case "sub":
-            left, right = tree.children
-            codegen(left)
-            cout = cout + " - "
-            codegen(right)
-        case "mul":
-            left, right = tree.children
-            codegen(left)
-            cout = cout + " * "
-            codegen(right)
-        case "div":
-            left, right = tree.children
-            codegen(left)
-            cout = cout + " / "
-            codegen(right)
-        case "eq":
-            left, right = tree.children
-            codegen(left)
-            cout = cout + " == "
-            codegen(right)
-        case "neq":
-            left, right = tree.children
-            codegen(left)
-            cout = cout + " != "
-            codegen(right)
-        case "lt":
-            left, right = tree.children
-            codegen(left)
-            cout = cout + " < "
-            codegen(right)
-        case "gt":
-            left, right = tree.children
-            codegen(left)
-            cout = cout + " > "
-            codegen(right)
-        case "number":
-            cout = cout + f"{tree.children[0]}"
-        case "identifier":
-            cout = cout + f"{str(tree.children[0])}" if str(tree.children[0]) in SYMBOL_TABLE else '0'
-        case "true":
-            cout = cout + "1"
-        case "false":
-            cout = cout + "0"
-
 def visitor(tree):
     match tree.data:
         case "program":
@@ -235,6 +134,107 @@ def visitor(tree):
             return True
         case "false":
             return False
+
+def codegen(tree):
+    global cout
+    match tree.data:
+        case "program":
+            for branch in tree.children:
+                codegen(branch)
+            return
+        case "taggable":
+            try:
+                if tree.children[0].type == "TAG":
+                    TAG_TABLE[tree.children[0].value] = tree.children[1]
+            except:
+                return codegen(tree.children[0])
+        case "assign_stmt":
+            left, right = tree.children
+            if len(left.children) > 1:
+                SYMBOL_TABLE[left.children[0].value][visitor(left.children[1])] = visitor(right)
+            else:
+                SYMBOL_TABLE[left.children[0].value] = visitor(right)
+            cout = cout + f"  {left.children[0].value} = "
+            codegen(right)
+            cout = cout + ";\n"
+        case "tag_stmt":
+            return codegen(TAG_TABLE[tree.children[0].value])
+        case "if_stmt":
+            cout = cout + "  if ("
+            codegen(tree.children[0])
+            cout = cout + ") {\n"
+            codegen(tree.children[1])
+            cout = cout + "  }"
+            if len(tree.children) > 2:
+                cout = cout + " else {\n"
+                codegen(tree.children[2])
+                cout = cout + "  }\n"
+        case "while_stmt":
+            cout = cout + "  while ("
+            codegen(tree.children[0])
+            cout = cout + ") {\n"
+            codegen(tree.children[1])
+            cout = cout + "  }\n"
+        case "print_stmt":
+            cout = cout + f"  printf(\"%d\\n\", "
+            codegen(tree.children[0])
+            cout = cout + ");\n"
+        case "comparison":
+            return codegen(tree.children[0])
+        case "expr":
+            return codegen(tree.children[0])
+        case "term":
+            return codegen(tree.children[0])
+        case "factor":
+            return codegen(tree.children[0])
+        case "add":
+            left, right = tree.children
+            codegen(left)
+            cout = cout + " + "
+            codegen(right)
+        case "sub":
+            left, right = tree.children
+            codegen(left)
+            cout = cout + " - "
+            codegen(right)
+        case "mul":
+            left, right = tree.children
+            codegen(left)
+            cout = cout + " * "
+            codegen(right)
+        case "div":
+            left, right = tree.children
+            codegen(left)
+            cout = cout + " / "
+            codegen(right)
+        case "eq":
+            left, right = tree.children
+            codegen(left)
+            cout = cout + " == "
+            codegen(right)
+        case "neq":
+            left, right = tree.children
+            codegen(left)
+            cout = cout + " != "
+            codegen(right)
+        case "lt":
+            left, right = tree.children
+            codegen(left)
+            cout = cout + " < "
+            codegen(right)
+        case "gt":
+            left, right = tree.children
+            codegen(left)
+            cout = cout + " > "
+            codegen(right)
+        case "number":
+            cout = cout + f"{tree.children[0]}"
+        case "identifier":
+            cout = cout + f"{str(tree.children[0])}" if str(tree.children[0]) in SYMBOL_TABLE else '0'
+        case "true":
+            cout = cout + "1"
+        case "false":
+            cout = cout + "0"
 
 # **** main ****
 if (__name__ == "__main__"):
