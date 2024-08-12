@@ -76,7 +76,7 @@ print x -> "2"
 
 ## Current status
 
-Working to replace handwritten lexer and parser with [Lark](https://github.com/lark-parser/lark).
+Working on PlayCode to C transpiler (for fun).
 
 ### Working example: bubble sort
 
