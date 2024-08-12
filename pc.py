@@ -35,33 +35,30 @@ def visitor(tree):
                 return visitor(tree.children[0])
         case "assign_stmt":
             left, right = tree.children
-            # if len(left.children) > 1:
-            #     SYMBOL_TABLE[left.children[0].value][visitor(left.children[1])] = visitor(right)
-            # else:
-            #     SYMBOL_TABLE[left.children[0].value] = visitor(right)
-            if not left.children[0].value in SYMBOL_TABLE:
-                SYMBOL_TABLE[left.children[0].value] = {}
+            if len(left.children) > 1:
+                SYMBOL_TABLE[left.children[0].value][visitor(left.children[1])] = visitor(right)
+            else:
+                SYMBOL_TABLE[left.children[0].value] = visitor(right)
         case "tag_stmt":
             return visitor(TAG_TABLE[tree.children[0].value])
         case "swap_stmt":
-            pass
-            # left, right = tree.children
-            # if len(left.children) > 1 and len(right.children) > 1:
-            #     tmp = SYMBOL_TABLE[left.children[0]][visitor(left.children[1])]
-            #     SYMBOL_TABLE[left.children[0]][visitor(left.children[1])] = SYMBOL_TABLE[right.children[0]][visitor(right.children[1])]
-            #     SYMBOL_TABLE[right.children[0]][visitor(right.children[1])] = tmp
-            # elif len(left.children) > 1:
-            #     tmp = SYMBOL_TABLE[left.children[0]][visitor(left.children[1])]
-            #     SYMBOL_TABLE[left.children[0]][visitor(left.children[1])] = SYMBOL_TABLE[right.children[0]]
-            #     SYMBOL_TABLE[right.children[0]] = tmp
-            # elif len(right.children) > 1:
-            #     tmp = SYMBOL_TABLE[left.children[0]]
-            #     SYMBOL_TABLE[left.children[0]] = SYMBOL_TABLE[right.children[0]][visitor(right.children[1])]
-            #     SYMBOL_TABLE[right.children[0]][visitor(right.children[1])] = tmp
-            # else:
-            #     tmp = SYMBOL_TABLE[left.children[0]]
-            #     SYMBOL_TABLE[left.children[0]] = SYMBOL_TABLE[right.children[0]]
-            #     SYMBOL_TABLE[right.children[0]] = tmp
+            left, right = tree.children
+            if len(left.children) > 1 and len(right.children) > 1:
+                tmp = SYMBOL_TABLE[left.children[0]][visitor(left.children[1])]
+                SYMBOL_TABLE[left.children[0]][visitor(left.children[1])] = SYMBOL_TABLE[right.children[0]][visitor(right.children[1])]
+                SYMBOL_TABLE[right.children[0]][visitor(right.children[1])] = tmp
+            elif len(left.children) > 1:
+                tmp = SYMBOL_TABLE[left.children[0]][visitor(left.children[1])]
+                SYMBOL_TABLE[left.children[0]][visitor(left.children[1])] = SYMBOL_TABLE[right.children[0]]
+                SYMBOL_TABLE[right.children[0]] = tmp
+            elif len(right.children) > 1:
+                tmp = SYMBOL_TABLE[left.children[0]]
+                SYMBOL_TABLE[left.children[0]] = SYMBOL_TABLE[right.children[0]][visitor(right.children[1])]
+                SYMBOL_TABLE[right.children[0]][visitor(right.children[1])] = tmp
+            else:
+                tmp = SYMBOL_TABLE[left.children[0]]
+                SYMBOL_TABLE[left.children[0]] = SYMBOL_TABLE[right.children[0]]
+                SYMBOL_TABLE[right.children[0]] = tmp
         case "if_stmt":
             if bool(visitor(tree.children[0])):
                 return visitor(tree.children[1])
@@ -90,10 +87,7 @@ def visitor(tree):
             return visitor(tree.children[0])
         case "add":
             left, right = tree.children
-            # return int(visitor(left)) + int(visitor(right))
-            visitor(left)
-            visitor(right)
-            return
+            return int(visitor(left)) + int(visitor(right))
         case "sub":
             left, right = tree.children
             return int(visitor(left)) - int(visitor(right))
@@ -114,10 +108,7 @@ def visitor(tree):
             return int(visitor(left)) < int(visitor(right))
         case "gt":
             left, right = tree.children
-            # return int(visitor(left)) > int(visitor(right))
-            visitor(left)
-            visitor(right)
-            return
+            return int(visitor(left)) > int(visitor(right))
         case "vector":
             data = []
             for branch in tree.children:
@@ -134,107 +125,6 @@ def visitor(tree):
             return True
         case "false":
             return False
-
-def codegen(tree):
-    global cout
-    match tree.data:
-        case "program":
-            for branch in tree.children:
-                codegen(branch)
-            return
-        case "taggable":
-            try:
-                if tree.children[0].type == "TAG":
-                    TAG_TABLE[tree.children[0].value] = tree.children[1]
-            except:
-                return codegen(tree.children[0])
-        case "assign_stmt":
-            left, right = tree.children
-            if len(left.children) > 1:
-                SYMBOL_TABLE[left.children[0].value][visitor(left.children[1])] = visitor(right)
-            else:
-                SYMBOL_TABLE[left.children[0].value] = visitor(right)
-            cout = cout + f"  {left.children[0].value} = "
-            codegen(right)
-            cout = cout + ";\n"
-        case "tag_stmt":
-            return codegen(TAG_TABLE[tree.children[0].value])
-        case "if_stmt":
-            cout = cout + "  if ("
-            codegen(tree.children[0])
-            cout = cout + ") {\n"
-            codegen(tree.children[1])
-            cout = cout + "  }"
-            if len(tree.children) > 2:
-                cout = cout + " else {\n"
-                codegen(tree.children[2])
-                cout = cout + "  }\n"
-        case "while_stmt":
-            cout = cout + "  while ("
-            codegen(tree.children[0])
-            cout = cout + ") {\n"
-            codegen(tree.children[1])
-            cout = cout + "  }\n"
-        case "print_stmt":
-            cout = cout + f"  printf(\"%d\\n\", "
-            codegen(tree.children[0])
-            cout = cout + ");\n"
-        case "comparison":
-            return codegen(tree.children[0])
-        case "expr":
-            return codegen(tree.children[0])
-        case "term":
-            return codegen(tree.children[0])
-        case "factor":
-            return codegen(tree.children[0])
-        case "add":
-            left, right = tree.children
-            codegen(left)
-            cout = cout + " + "
-            codegen(right)
-        case "sub":
-            left, right = tree.children
-            codegen(left)
-            cout = cout + " - "
-            codegen(right)
-        case "mul":
-            left, right = tree.children
-            codegen(left)
-            cout = cout + " * "
-            codegen(right)
-        case "div":
-            left, right = tree.children
-            codegen(left)
-            cout = cout + " / "
-            codegen(right)
-        case "eq":
-            left, right = tree.children
-            codegen(left)
-            cout = cout + " == "
-            codegen(right)
-        case "neq":
-            left, right = tree.children
-            codegen(left)
-            cout = cout + " != "
-            codegen(right)
-        case "lt":
-            left, right = tree.children
-            codegen(left)
-            cout = cout + " < "
-            codegen(right)
-        case "gt":
-            left, right = tree.children
-            codegen(left)
-            cout = cout + " > "
-            codegen(right)
-        case "number":
-            cout = cout + f"{tree.children[0]}"
-        case "identifier":
-            cout = cout + f"{str(tree.children[0])}" if str(tree.children[0]) in SYMBOL_TABLE else '0'
-        case "true":
-            cout = cout + "1"
-        case "false":
-            cout = cout + "0"
 
 # **** main ****
 if (__name__ == "__main__"):
@@ -265,24 +155,11 @@ if (__name__ == "__main__"):
         TAG_TABLE = {}
         STDOUT = []
         STDERR = []
-        # TODO need to get all symbols in first pass to add at top in c output
         for branch in tree.children: visitor(branch)
         if not len(STDOUT) == 0:
             for output in STDOUT: print(output)
         if "--tables" in sys.argv:
             print(f"{COLORS['warning']}SYMBOL_TABLE: {SYMBOL_TABLE}{COLORS['end']}")
             print(f"{COLORS['warning']}TAG_TABLE: {TAG_TABLE}{COLORS['end']}")
-
-        cout = "#include <stdio.h>\n\n"
-        cout = cout + """int main() {\n"""
-        # declare variables
-        for key in SYMBOL_TABLE: cout = cout + f"  int {key};\n"
-        for branch in tree.children: codegen(branch)
-        cout = cout + """\n  return 0;\n}"""
-
-        # compile and run cout using gcc
-        with open("out.c", "w") as f: f.write(cout)
-        os.system("gcc -o out out.c")
-        os.system("./out")
     else:
         print(f"{COLORS['fail']}No source file provided{COLORS['end']}")
