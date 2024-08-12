@@ -23,8 +23,11 @@ parser = Lark(open("pc.lark", "r").read(), start="program", parser="lalr")
 
 cout = """"""
 
+has_print = False
+
 # first pass
 def visitor(tree):
+    global has_print
     match tree.data:
         case "program":
             for branch in tree.children: visitor(branch)
@@ -39,11 +42,19 @@ def visitor(tree):
             left, right = tree.children
             if not left.children[0].value in SYMBOL_TABLE:
                 SYMBOL_TABLE[left.children[0].value] = {}
+            if len(left.children) > 1: visitor(left.children[1])
+            visitor(right)
         case "tag_stmt":
             return visitor(TAG_TABLE[tree.children[0].value])
         case "swap_stmt":
-            # TODO need visitor for swap?
-            pass
+            left, right = tree.children
+            if len(left.children) > 1 and len(right.children) > 1:
+                visitor(left.children[1])
+                visitor(right.children[1])
+            elif len(left.children) > 1:
+                visitor(left.children[1])
+            elif len(right.children) > 1:
+                visitor(right.children[1])
         case "if_stmt":
             if bool(visitor(tree.children[0])):
                 return visitor(tree.children[1])
@@ -54,14 +65,16 @@ def visitor(tree):
                 visitor(tree.children[1])
         case "assert_stmt":
             value = str(visitor(tree.children[0]))
-            if not value == tree.children[1].children[0][1:-1]:
-                STDERR.append(f"Assert error: {value} not equal to {tree.children[1].children[0][1:-1]}")
+            # TODO convert to appropriate C syntax
+            # if not value == tree.children[1].children[0][1:-1]:
+            #     STDERR.append(f"Assert error: {value} not equal to {tree.children[1].children[0][1:-1]}")
         case "print_stmt":
-            output = str(visitor(tree.children[0]))
-            if len(tree.children) > 1 and tree.children[1].data == "assert":
-                if not output == tree.children[1].children[0][1:-1]:
-                    STDERR.append(f"Assert error: {output} not equal to {tree.children[1].children[0][1:-1]}")
-            STDOUT.append(output)
+            has_print = True # to include stdio
+            # output = str(visitor(tree.children[0]))
+            # if len(tree.children) > 1 and tree.children[1].data == "assert":
+            #     if not output == tree.children[1].children[0][1:-1]:
+            #         STDERR.append(f"Assert error: {output} not equal to {tree.children[1].children[0][1:-1]}")
+            # STDOUT.append(output)
         case "comparison":
             return visitor(tree.children[0])
         case "expr":
@@ -77,22 +90,34 @@ def visitor(tree):
             return
         case "sub":
             left, right = tree.children
-            return int(visitor(left)) - int(visitor(right))
+            visitor(left)
+            visitor(right)
+            return
         case "mul":
             left, right = tree.children
-            return int(visitor(left)) * int(visitor(right))
+            visitor(left)
+            visitor(right)
+            return
         case "div":
             left, right = tree.children
-            return int(visitor(left)) / int(visitor(right))
+            visitor(left)
+            visitor(right)
+            return
         case "eq":
             left, right = tree.children
-            return int(visitor(left)) == int(visitor(right))
+            visitor(left)
+            visitor(right)
+            return
         case "neq":
             left, right = tree.children
-            return int(visitor(left)) != int(visitor(right))
+            visitor(left)
+            visitor(right)
+            return
         case "lt":
             left, right = tree.children
-            return int(visitor(left)) < int(visitor(right))
+            visitor(left)
+            visitor(right)
+            return
         case "gt":
             left, right = tree.children
             visitor(left)
@@ -101,15 +126,14 @@ def visitor(tree):
         case "vector":
             data = []
             for branch in tree.children:
-                data.append(visitor(branch))
-            return list(data)
+                visitor(branch)
+            return
         case "number":
-            return int(tree.children[0])
+            return
         case "identifier":
             if len(tree.children) > 1:
-                return SYMBOL_TABLE[str(tree.children[0])][int(visitor(tree.children[1]))]
-            else:
-                return SYMBOL_TABLE[str(tree.children[0])]
+                visitor(tree.children[1])
+                return
         case "true":
             return True
         case "false":
@@ -252,7 +276,7 @@ if (__name__ == "__main__"):
             print(f"{COLORS['warning']}SYMBOL_TABLE: {SYMBOL_TABLE}{COLORS['end']}")
             print(f"{COLORS['warning']}TAG_TABLE: {TAG_TABLE}{COLORS['end']}")
         # c codegen
-        cout = "#include <stdio.h>\n\n"
+        cout = "#include <stdio.h>\n\n" if has_print else ""
         cout = cout + """int main() {\n"""
         # declare variables
         for key in SYMBOL_TABLE: cout = cout + f"  int {key};\n"
