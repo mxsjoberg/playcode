@@ -26,7 +26,7 @@ nindents = 2
 
 has_print = False
 
-# first pass
+# first pass: figure out what magic this playcode program will do
 def visitor(tree):
     global has_print
     match tree.data:
@@ -140,6 +140,7 @@ def visitor(tree):
         case "false":
             return False
 
+# second pass: perform the magic in C
 def codegen(tree):
     global cout, nindents
     match tree.data:
