@@ -148,7 +148,7 @@ Done
 
 Using [todoparser.sh](https://github.com/mxsjoberg/todoparser).
 
-```bash
+```txt
 pc.py      167 lines
 pcc.py      266 lines
   45:  need visitor for swap?
