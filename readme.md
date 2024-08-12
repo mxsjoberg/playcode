@@ -148,5 +148,10 @@ Done
 
 Using [todoparser.sh](https://github.com/mxsjoberg/todoparser).
 
-![todo.png](misc/todo.png)
+```bash
+pc.py      167 lines
+pcc.py      266 lines
+  45:  need visitor for swap?
+  220:  python3 pcc.py --tests
+```
 
