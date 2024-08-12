@@ -22,6 +22,7 @@ COLORS = {
 parser = Lark(open("pc.lark", "r").read(), start="program", parser="lalr")
 
 cout = """"""
+nindents = 2
 
 has_print = False
 
@@ -140,7 +141,7 @@ def visitor(tree):
             return False
 
 def codegen(tree):
-    global cout
+    global cout, nindents
     match tree.data:
         case "program":
             for branch in tree.children: codegen(branch)
@@ -157,27 +158,33 @@ def codegen(tree):
                 SYMBOL_TABLE[left.children[0].value][visitor(left.children[1])] = visitor(right)
             else:
                 SYMBOL_TABLE[left.children[0].value] = visitor(right)
-            cout = cout + f"  {left.children[0].value} = "
+            cout = cout + " "*nindents + f"{left.children[0].value} = "
             codegen(right)
             cout = cout + ";\n"
         case "tag_stmt":
             return codegen(TAG_TABLE[tree.children[0].value])
         case "if_stmt":
-            cout = cout + "  if ("
+            cout = cout + " "*nindents + "if ("
             codegen(tree.children[0])
             cout = cout + ") {\n"
+            nindents += 2
             codegen(tree.children[1])
-            cout = cout + "  }"
+            nindents -= 2
+            cout = cout + " "*nindents + "}"
             if len(tree.children) > 2:
                 cout = cout + " else {\n"
+                nindents += 2
                 codegen(tree.children[2])
-                cout = cout + "  }\n"
+                nindents -= 2
+                cout = cout + " "*nindents + "}\n"
         case "while_stmt":
-            cout = cout + "  while ("
+            cout = cout + " "*nindents + "while ("
             codegen(tree.children[0])
             cout = cout + ") {\n"
+            nindents += 2
             codegen(tree.children[1])
-            cout = cout + "  }\n"
+            nindents -= 2
+            cout = cout + " "*nindents + "}\n"
         case "print_stmt":
             cout = cout + f"  printf(\"%d\\n\", "
             codegen(tree.children[0])
